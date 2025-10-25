@@ -99,7 +99,7 @@ class EuystacioAI:
             Knowledge value if found, None otherwise
         """
         entry = self.knowledge_base.get(key)
-        return entry["value"] if entry else None
+        return entry.get("value") if entry else None
     
     def get_status(self) -> Dict[str, Any]:
         """

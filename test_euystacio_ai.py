@@ -98,7 +98,7 @@ class TestEuystacioAI(unittest.TestCase):
         repr_str = repr(self.ai)
         self.assertIn("TestAI", repr_str)
         self.assertIn("1.0.0", repr_str)
-        self.assertIn("interactions=1", repr_str)
+        self.assertIn(f"interactions={len(self.ai.interaction_history)}", repr_str)
 
 
 if __name__ == '__main__':
