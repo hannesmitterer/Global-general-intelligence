@@ -7,6 +7,8 @@ export interface Config {
   googleIssuers: string[];
   seedbringerEmails: string[];
   councilEmails: string[];
+  // Note: Scope validation is configured but not yet implemented in middleware
+  // These are reserved for future OAuth access token verification
   requiredScopesSeedbringer: string[];
   requiredScopesCouncil: string[];
   corsAllowOrigin: string;

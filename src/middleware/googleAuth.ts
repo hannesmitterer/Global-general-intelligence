@@ -82,9 +82,9 @@ export function requireSeedbringer(
   const allowedEmails = config.seedbringerEmails.map(e => e.toLowerCase());
 
   if (!allowedEmails.includes(userEmail)) {
+    console.log(`Access denied for user: ${req.user.email} - Seedbringer role required`);
     res.status(403).json({ 
-      error: 'Forbidden: Seedbringer role required',
-      userEmail: req.user.email
+      error: 'Forbidden: Seedbringer role required'
     });
     return;
   }
@@ -109,9 +109,9 @@ export function requireCouncil(
   const allowedEmails = config.councilEmails.map(e => e.toLowerCase());
 
   if (!allowedEmails.includes(userEmail)) {
+    console.log(`Access denied for user: ${req.user.email} - Council role required`);
     res.status(403).json({ 
-      error: 'Forbidden: Council role required',
-      userEmail: req.user.email
+      error: 'Forbidden: Council role required'
     });
     return;
   }
