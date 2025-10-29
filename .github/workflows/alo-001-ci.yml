@@ -1,0 +1,55 @@
+name: ALO-001 CI
+
+on:
+  push:
+    branches:
+      - alo-001/google-oauth
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Verify .env.example exists
+        run: |
+          if [ ! -f .env.example ]; then
+            echo "ERROR: .env.example file not found"
+            exit 1
+          fi
+          echo ".env.example verified"
+          cat .env.example
+
+      - name: Verify required environment variables in .env.example
+        run: |
+          required_vars="GOOGLE_CLIENT_ID SEEDBRINGER_EMAILS COUNCIL_EMAILS PORT"
+          for var in $required_vars; do
+            if ! grep -q "^${var}=" .env.example; then
+              echo "ERROR: ${var} not found in .env.example"
+              exit 1
+            fi
+          done
+          echo "All required variables found in .env.example"
+
+      - name: Run tests
+        run: npm test
