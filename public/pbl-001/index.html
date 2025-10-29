@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALO-001 - Google OAuth RBAC Demo</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .auth-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .user-info {
+            display: none;
+            margin: 20px 0;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 6px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .user-info.active {
+            display: block;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+        
+        .user-info strong {
+            color: #2e7d32;
+        }
+        
+        .sign-out-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .sign-out-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .api-section {
+            margin-top: 30px;
+        }
+        
+        .api-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .response-area.success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .response-area.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .allocation-form {
+            display: none;
+            margin: 20px 0;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 6px;
+        }
+        
+        .allocation-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ALO-001 RBAC Demo</h1>
+        <p class="subtitle">Google OAuth with Role-Based Access Control</p>
+        
+        <div class="auth-section">
+            <h2 style="margin-bottom: 15px; font-size: 18px;">Authentication</h2>
+            <div id="googleSignInDiv"></div>
+            
+            <div id="userInfo" class="user-info">
+                <p><strong>Email:</strong> <span id="userEmail"></span></p>
+                <p><strong>Role:</strong> <span id="userRole"></span></p>
+                <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h2 style="margin-bottom: 15px; font-size: 18px;">Protected API Endpoints</h2>
+            
+            <div class="api-buttons">
+                <button onclick="callApi('/sfi', 'GET')" disabled id="btnSfi">GET /sfi</button>
+                <button onclick="callApi('/mcl/live', 'GET')" disabled id="btnMcl">GET /mcl/live</button>
+                <button onclick="toggleAllocationForm()" disabled id="btnAllocations">POST /allocations</button>
+            </div>
+            
+            <div id="allocationForm" class="allocation-form">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">Create Allocation</h3>
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="allocationAmount" placeholder="1000">
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" id="allocationDesc" placeholder="Resource allocation">
+                </div>
+                <button onclick="submitAllocation()">Submit Allocation</button>
+            </div>
+            
+            <div id="response" class="response-area">API responses will appear here...</div>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> Replace GOOGLE_CLIENT_ID in your .env file with your actual Google OAuth Client ID.
+            <br><strong>Seedbringer:</strong> hannes.mitterer@gmail.com (full access)
+            <br><strong>Council:</strong> dietmar.zuegg@gmail.com, bioarchitettura.rivista@gmail.com, consultant.laquila@gmail.com (read-only)
+        </div>
+    </div>
+
+    <script>
+        let idToken = null;
+        let userRole = null;
+        
+        // TODO: Replace with your actual Google Client ID from Google Cloud Console
+        // This should match the GOOGLE_CLIENT_ID in your .env file
+        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+        const API_BASE_URL = window.location.origin;
+        
+        // Initialize Google Sign-In
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse
+            });
+            
+            google.accounts.id.renderButton(
+                document.getElementById('googleSignInDiv'),
+                { 
+                    theme: 'outline', 
+                    size: 'large',
+                    text: 'signin_with',
+                    width: 250
+                }
+            );
+        };
+        
+        function handleCredentialResponse(response) {
+            idToken = response.credential;
+            
+            // Decode the JWT to get user info (just for display)
+            const payload = JSON.parse(atob(idToken.split('.')[1]));
+            const email = payload.email;
+            
+            // Determine role based on email (client-side display only, server enforces)
+            const seedbringerEmails = ['hannes.mitterer@gmail.com'];
+            const councilEmails = ['dietmar.zuegg@gmail.com', 'bioarchitettura.rivista@gmail.com', 'consultant.laquila@gmail.com'];
+            
+            if (seedbringerEmails.includes(email)) {
+                userRole = 'seedbringer';
+            } else if (councilEmails.includes(email)) {
+                userRole = 'council';
+            } else {
+                userRole = 'unauthorized';
+            }
+            
+            // Update UI
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userRole').textContent = userRole;
+            document.getElementById('userInfo').classList.add('active');
+            document.getElementById('googleSignInDiv').style.display = 'none';
+            
+            // Enable buttons based on role
+            enableButtons(userRole);
+            
+            updateResponse('Signed in successfully!', 'success');
+        }
+        
+        function enableButtons(role) {
+            // Council and Seedbringer can access read endpoints
+            if (role === 'council' || role === 'seedbringer') {
+                document.getElementById('btnSfi').disabled = false;
+                document.getElementById('btnMcl').disabled = false;
+            }
+            
+            // Only Seedbringer can create allocations
+            if (role === 'seedbringer') {
+                document.getElementById('btnAllocations').disabled = false;
+            }
+        }
+        
+        function signOut() {
+            google.accounts.id.disableAutoSelect();
+            idToken = null;
+            userRole = null;
+            
+            document.getElementById('userInfo').classList.remove('active');
+            document.getElementById('googleSignInDiv').style.display = 'block';
+            document.getElementById('allocationForm').classList.remove('active');
+            
+            // Disable all buttons
+            document.getElementById('btnSfi').disabled = true;
+            document.getElementById('btnMcl').disabled = true;
+            document.getElementById('btnAllocations').disabled = true;
+            
+            updateResponse('Signed out successfully.', 'success');
+        }
+        
+        async function callApi(endpoint, method = 'GET', body = null) {
+            if (!idToken) {
+                updateResponse('Error: Please sign in first', 'error');
+                return;
+            }
+            
+            try {
+                updateResponse('Loading...', '');
+                
+                const options = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(API_BASE_URL + endpoint, options);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResponse(JSON.stringify(data, null, 2), 'success');
+                } else {
+                    updateResponse(`Error ${response.status}: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                updateResponse(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function toggleAllocationForm() {
+            const form = document.getElementById('allocationForm');
+            form.classList.toggle('active');
+        }
+        
+        function submitAllocation() {
+            const amount = document.getElementById('allocationAmount').value;
+            const description = document.getElementById('allocationDesc').value;
+            
+            const allocationData = {
+                amount: parseFloat(amount) || 0,
+                description: description || 'No description',
+                timestamp: new Date().toISOString()
+            };
+            
+            callApi('/allocations', 'POST', allocationData);
+            
+            // Hide form after submission
+            document.getElementById('allocationForm').classList.remove('active');
+        }
+        
+        function updateResponse(message, type) {
+            const responseArea = document.getElementById('response');
+            responseArea.textContent = message;
+            responseArea.className = 'response-area';
+            if (type) {
+                responseArea.classList.add(type);
+            }
+        }
+    </script>
+</body>
+</html>
