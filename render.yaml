@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: alo-001-backend
+    env: node
+    plan: free
+    region: frankfurt
+    buildCommand: |
+      npm ci
+      npm run build
+    startCommand: node dist/server.js
+    autoDeploy: true
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_ISSUERS
+        value: "accounts.google.com,https://accounts.google.com"
+      - key: SEEDBRINGER_EMAILS
+        value: "hannes.mitterer@gmail.com"
+      - key: COUNCIL_EMAILS
+        value: "dietmar.zuegg@gmail.com, bioarchitettura.rivista@gmail.com, consultant.laquila@gmail.com"
+      - key: REQUIRED_SCOPES_SEEDBRINGER
+        value: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+      - key: REQUIRED_SCOPES_COUNCIL
+        value: "https://www.googleapis.com/auth/userinfo.email"
+      - key: ORACLE_SERVICE_ACCOUNT_RESOURCE
+        sync: false
+      - key: CORS_ALLOW_ORIGIN
+        value: "*"
+      - key: PORT
+        value: "8080"
