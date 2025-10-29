@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { config, validateConfig } from './config';
 import {
   verifyGoogleToken,
@@ -19,9 +20,29 @@ try {
 
 const app = express();
 
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: 'Too many requests from this IP, please try again later.'
+});
+
+// Stricter rate limiting for write operations
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many write requests from this IP, please try again later.'
+});
+
 // Middleware
+// CORS configuration
 app.use(cors({
-  origin: config.corsAllowOrigin
+  origin: config.corsAllowOrigin === '*' ? true : config.corsAllowOrigin,
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.static('public'));
@@ -37,7 +58,7 @@ app.get('/health', (req: Request, res: Response) => {
  * GET /sfi - Retrieve SFI data
  * Accessible by: Council or Seedbringer
  */
-app.get('/sfi', verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+app.get('/sfi', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
   res.json({
     data: 'SFI data',
     message: 'SFI data retrieved successfully',
@@ -50,7 +71,7 @@ app.get('/sfi', verifyGoogleToken, requireCouncilOrSeedbringer, (req: Authentica
  * GET /mcl/live - Retrieve MCL live data
  * Accessible by: Council or Seedbringer
  */
-app.get('/mcl/live', verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+app.get('/mcl/live', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
   res.json({
     data: 'MCL live data',
     message: 'MCL live data retrieved successfully',
@@ -63,7 +84,7 @@ app.get('/mcl/live', verifyGoogleToken, requireCouncilOrSeedbringer, (req: Authe
  * POST /allocations - Create new allocation
  * Accessible by: Seedbringer only
  */
-app.post('/allocations', verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+app.post('/allocations', strictLimiter, verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
   const allocationData = req.body;
   
   res.json({
