@@ -73,7 +73,7 @@ export class SentimentoWSHub {
     const { hope, sorrow } = event.composites;
     
     // Feed Seed-003 KPI tracker
-    seed003KPI.pushSample(sorrow, hope);
+    seed003KPI.pushSample(hope, sorrow);
 
     // Prepare payload
     const payload = JSON.stringify(event);

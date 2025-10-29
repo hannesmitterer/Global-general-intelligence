@@ -14,9 +14,9 @@ class Seed003KPI {
   private readonly maxSamples: number = 1000; // Keep last 1000 samples
 
   /**
-   * Push a new sample (sorrow, hope) into the KPI tracker
+   * Push a new sample (hope, sorrow) into the KPI tracker
    */
-  pushSample(sorrow: number, hope: number): void {
+  pushSample(hope: number, sorrow: number): void {
     const sample: Sample = {
       sorrow,
       hope,
