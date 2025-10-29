@@ -106,7 +106,7 @@ This repository now includes **ALO-001**, a Node.js/Express backend with Google 
 
 ### Prerequisites
 
-- Node.js 16+ or higher
+- Node.js 16+
 - Google OAuth 2.0 Client ID ([Create one here](https://console.cloud.google.com/apis/credentials))
 
 ### Setup
@@ -166,9 +166,9 @@ curl -H "Authorization: Bearer YOUR_GOOGLE_ID_TOKEN" \
 
 ### Role Configuration
 
-Edit `.env` to configure authorized users:
+Edit `.env` to configure authorized users. See `.env.example` for the required format:
 
 ```
-SEEDBRINGER_EMAILS=hannes.mitterer@gmail.com
-COUNCIL_EMAILS=dietmar.zuegg@gmail.com, bioarchitettura.rivista@gmail.com, consultant.laquila@gmail.com
+SEEDBRINGER_EMAILS=user1@example.com
+COUNCIL_EMAILS=user2@example.com, user3@example.com
 ```
