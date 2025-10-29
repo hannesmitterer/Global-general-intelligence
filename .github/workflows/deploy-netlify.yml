@@ -1,0 +1,21 @@
+name: Deploy HMI to Netlify
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Netlify CLI
+        run: npm i -g netlify-cli
+      - name: Deploy to Netlify (prod)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          test -d public || { echo "public/ not found"; exit 1; }
+          netlify deploy --dir=public --prod --message "CI deploy $(date -u +%FT%TZ)"
