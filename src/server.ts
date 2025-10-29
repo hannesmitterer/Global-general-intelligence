@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { OAuth2Client } from 'google-auth-library';
+import rateLimit from 'express-rate-limit';
 import * as dotenv from 'dotenv';
 import * as hopeKpi from './kpi/hope';
 
@@ -13,6 +14,21 @@ const PORT = process.env.PORT || 8080;
 const corsOrigin = process.env.CORS_ALLOW_ORIGIN || '*';
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
+
+// Rate limiting configuration
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const ingestLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // Limit to 60 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Google OAuth client
 const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
@@ -98,7 +114,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // ALO-001 Endpoint: GET /sfi (Council required)
-app.get('/sfi', requireCouncil, (req: Request, res: Response) => {
+app.get('/sfi', authLimiter, requireCouncil, (req: Request, res: Response) => {
   const principal = (req as any).principal;
   const role = (req as any).role;
   res.json({
@@ -110,7 +126,7 @@ app.get('/sfi', requireCouncil, (req: Request, res: Response) => {
 });
 
 // ALO-001 Endpoint: GET /mcl/live (Council required)
-app.get('/mcl/live', requireCouncil, (req: Request, res: Response) => {
+app.get('/mcl/live', authLimiter, requireCouncil, (req: Request, res: Response) => {
   const principal = (req as any).principal;
   const role = (req as any).role;
   res.json({
@@ -122,7 +138,7 @@ app.get('/mcl/live', requireCouncil, (req: Request, res: Response) => {
 });
 
 // ALO-001 Endpoint: POST /allocations (Seedbringer required)
-app.post('/allocations', requireSeedbringer, (req: Request, res: Response) => {
+app.post('/allocations', authLimiter, requireSeedbringer, (req: Request, res: Response) => {
   const principal = (req as any).principal;
   const role = (req as any).role;
   const { op } = req.body;
@@ -136,13 +152,13 @@ app.post('/allocations', requireSeedbringer, (req: Request, res: Response) => {
 });
 
 // Seed-003 Endpoint: GET /kpi/hope-ratio (Council required)
-app.get('/kpi/hope-ratio', requireCouncil, (req: Request, res: Response) => {
+app.get('/kpi/hope-ratio', authLimiter, requireCouncil, (req: Request, res: Response) => {
   const kpi = hopeKpi.getRollingKpi();
   res.json({ kpi });
 });
 
 // Seed-003 Endpoint: POST /ingest/sentimento (unauthenticated in this PR)
-app.post('/ingest/sentimento', (req: Request, res: Response) => {
+app.post('/ingest/sentimento', ingestLimiter, (req: Request, res: Response) => {
   const { sorrow, hope } = req.body;
   
   if (typeof sorrow !== 'number' || typeof hope !== 'number') {
