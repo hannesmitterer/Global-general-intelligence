@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBL-001 - Global General Intelligence</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #4285f4;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .auth-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .user-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 5px;
+        }
+        .controls {
+            display: none;
+            margin-top: 20px;
+        }
+        .control-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #357ae8;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PBL-001 - Control Interface</h1>
+        <p>Global General Intelligence - Protected Backend Layer</p>
+    </div>
+
+    <div class="container">
+        <div class="auth-section">
+            <h2>Authentication</h2>
+            <p>Sign in with your Google account to access protected endpoints.</p>
+            
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                 data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+            
+            <div id="signOutButton" style="display: none; margin-top: 10px;">
+                <button onclick="signOut()">Sign Out</button>
+            </div>
+
+            <div id="userInfo" class="user-info"></div>
+        </div>
+
+        <div id="controls" class="controls">
+            <h2>Protected Endpoints</h2>
+            
+            <div class="control-section">
+                <h3>SFI Endpoint (Council Required)</h3>
+                <p>Access the SFI (Strategic Framework Interface) endpoint.</p>
+                <button onclick="callEndpoint('/sfi', 'GET')">GET /sfi</button>
+                <div id="sfi-response" class="response"></div>
+            </div>
+
+            <div class="control-section">
+                <h3>MCL Live Endpoint (Council Required)</h3>
+                <p>Access the MCL Live (Management Control Layer) endpoint.</p>
+                <button onclick="callEndpoint('/mcl/live', 'GET')">GET /mcl/live</button>
+                <div id="mcl-response" class="response"></div>
+            </div>
+
+            <div class="control-section">
+                <h3>Allocations Endpoint (Seedbringer Required)</h3>
+                <p>Create resource allocations. Requires Seedbringer role.</p>
+                <button onclick="postAllocation()">POST /allocations</button>
+                <div id="allocations-response" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let idToken = null;
+        let userEmail = null;
+        const BACKEND_URL = 'http://localhost:8080';
+
+        // Handle the credential response from Google
+        function handleCredentialResponse(response) {
+            idToken = response.credential;
+            
+            // Decode the JWT to get user info (for display only)
+            const payload = JSON.parse(atob(idToken.split('.')[1]));
+            userEmail = payload.email;
+            
+            document.getElementById('userInfo').innerHTML = `
+                <h3>Signed In</h3>
+                <p><strong>Email:</strong> ${payload.email}</p>
+                <p><strong>Name:</strong> ${payload.name || 'N/A'}</p>
+                ${payload.picture ? `<img src="${payload.picture}" alt="Profile" style="width: 50px; height: 50px; border-radius: 50%;">` : ''}
+            `;
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('signOutButton').style.display = 'block';
+            document.getElementById('controls').style.display = 'block';
+            
+            // Hide the sign-in button
+            document.querySelector('.g_id_signin').style.display = 'none';
+        }
+
+        // Sign out function
+        function signOut() {
+            idToken = null;
+            userEmail = null;
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('signOutButton').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.querySelector('.g_id_signin').style.display = 'block';
+            
+            // Clear all response displays
+            document.querySelectorAll('.response').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+        }
+
+        // Call a backend endpoint
+        async function callEndpoint(path, method = 'GET', body = null) {
+            if (!idToken) {
+                alert('Please sign in first');
+                return;
+            }
+
+            const responseId = path.replace(/\//g, '-').substring(1) + '-response';
+            const responseEl = document.getElementById(responseId);
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(BACKEND_URL + path, options);
+                const data = await response.json();
+                
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                responseEl.style.display = 'block';
+                responseEl.style.backgroundColor = response.ok ? '#e8f5e9' : '#ffebee';
+            } catch (error) {
+                responseEl.textContent = `Error: ${error.message}`;
+                responseEl.style.display = 'block';
+                responseEl.style.backgroundColor = '#ffebee';
+            }
+        }
+
+        // Post an allocation
+        function postAllocation() {
+            const allocationData = {
+                resource: 'compute',
+                amount: 100,
+                unit: 'hours',
+                requester: userEmail,
+                timestamp: new Date().toISOString(),
+            };
+            
+            callEndpoint('/allocations', 'POST', allocationData);
+        }
+
+        // Initialize Google Client ID from environment or placeholder
+        window.addEventListener('DOMContentLoaded', () => {
+            // Note: In production, this should be replaced with actual client ID
+            // or loaded from a configuration endpoint
+            const clientIdElement = document.querySelector('[data-client_id]');
+            if (clientIdElement) {
+                // Check if there's a way to get the client ID dynamically
+                console.log('Google Sign-In initialized with client ID placeholder');
+                console.log('Replace YOUR_GOOGLE_CLIENT_ID with actual Client ID from Google Console');
+            }
+        });
+    </script>
+</body>
+</html>
