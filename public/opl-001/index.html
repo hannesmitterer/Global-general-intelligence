@@ -13,8 +13,8 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a1530 0%, #0c203f 50%, #1a2847 100%);
+            font-family: 'Courier New', 'Comic Sans MS', cursive;
+            background: linear-gradient(45deg, #FFD23F 0%, #4ECDC4 25%, #FF6B6B 50%, #95E1D3 75%, #F38181 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -24,79 +24,159 @@
             overflow: hidden;
         }
         
-        /* Aurora-inspired animated background */
+        /* Miró-style floating organic shapes */
         body::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(ellipse at 30% 20%, rgba(106, 195, 255, 0.15), transparent 50%),
-                        radial-gradient(ellipse at 70% 80%, rgba(255, 180, 120, 0.15), transparent 50%);
-            animation: aurora 10s ease-in-out infinite;
-            pointer-events: none;
+            top: 10%;
+            left: 5%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #FF6B6B 30%, transparent 70%);
+            border-radius: 60% 40% 50% 70%;
+            animation: float1 15s ease-in-out infinite;
+            opacity: 0.6;
         }
         
-        @keyframes aurora {
-            0%, 100% { opacity: 0.5; transform: translateY(0); }
-            50% { opacity: 0.8; transform: translateY(-20px); }
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            right: 10%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(ellipse, #4ECDC4 40%, transparent 70%);
+            border-radius: 40% 60% 70% 30%;
+            animation: float2 12s ease-in-out infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(30px, -40px) rotate(180deg); }
+        }
+        
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(-25px, 30px) rotate(-180deg) scale(1.2); }
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
+            background: #FFFEF2;
+            border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%;
             padding: 60px 40px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-                        0 0 40px rgba(106, 195, 255, 0.2);
+            box-shadow: 15px 15px 0px #FF6B6B, -10px -10px 0px #4ECDC4;
             text-align: center;
             position: relative;
             z-index: 1;
+            border: 6px solid #2C3E50;
+        }
+        
+        /* Miró-style decorative circles */
+        .container::before {
+            content: '●';
+            position: absolute;
+            top: -30px;
+            right: 30px;
+            font-size: 60px;
+            color: #FFD23F;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .container::after {
+            content: '◆';
+            position: absolute;
+            bottom: -20px;
+            left: 40px;
+            font-size: 50px;
+            color: #95E1D3;
+            transform: rotate(45deg);
+            animation: spin 8s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(45deg); }
+            to { transform: rotate(405deg); }
         }
         
         .logo {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             margin: 0 auto 30px;
-            background: linear-gradient(135deg, #6ac3ff 0%, #ffb478 100%);
-            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #FFD23F 100%);
+            border-radius: 47% 53% 42% 58% / 55% 48% 52% 45%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 48px;
             font-weight: bold;
             color: white;
-            box-shadow: 0 4px 20px rgba(106, 195, 255, 0.4);
+            box-shadow: 8px 8px 0px #2C3E50;
+            animation: morph 6s ease-in-out infinite;
+            border: 4px solid #2C3E50;
+        }
+        
+        @keyframes morph {
+            0%, 100% { border-radius: 47% 53% 42% 58% / 55% 48% 52% 45%; }
+            25% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 40% 60%; }
+            75% { border-radius: 58% 42% 55% 45% / 45% 55% 45% 55%; }
         }
         
         h1 {
-            color: #0a1530;
+            color: #2C3E50;
             margin-bottom: 10px;
-            font-size: 32px;
-            font-weight: 600;
+            font-size: 36px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #FFD23F;
         }
         
         .subtitle {
-            color: #666;
+            color: #34495E;
             margin-bottom: 40px;
-            font-size: 16px;
+            font-size: 18px;
             line-height: 1.6;
+            font-weight: 600;
         }
         
         .auth-section {
             margin: 30px 0;
             padding: 30px 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
+            background: linear-gradient(135deg, #F8E5E5 0%, #E8F5F8 100%);
+            border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%;
+            border: 4px solid #2C3E50;
+            position: relative;
+        }
+        
+        /* Decorative Miró elements */
+        .auth-section::before {
+            content: '★';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 24px;
+            color: #FF6B6B;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: rotate(0deg); }
+            50% { opacity: 0.5; transform: rotate(180deg); }
         }
         
         .auth-prompt {
-            color: #0a1530;
-            font-size: 18px;
-            font-weight: 500;
+            color: #2C3E50;
+            font-size: 20px;
+            font-weight: 700;
             margin-bottom: 25px;
         }
         
@@ -110,10 +190,11 @@
             display: none;
             margin: 30px 0;
             padding: 25px;
-            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
-            border-radius: 12px;
-            border-left: 4px solid #4caf50;
+            background: linear-gradient(135deg, #E8F5E9 0%, #FFF9C4 100%);
+            border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%;
+            border: 5px solid #2C3E50;
             text-align: left;
+            box-shadow: 6px 6px 0px #4ECDC4;
         }
         
         .user-info.active {
@@ -122,40 +203,44 @@
         
         .user-info p {
             margin: 10px 0;
-            color: #333;
+            color: #2C3E50;
             font-size: 16px;
+            font-weight: 600;
         }
         
         .user-info strong {
-            color: #2e7d32;
-            font-weight: 600;
+            color: #FF6B6B;
+            font-weight: 800;
         }
         
         .user-email {
             font-family: 'Courier New', monospace;
-            background: rgba(46, 125, 50, 0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 2px dashed #FF6B6B;
         }
         
         .sign-out-btn {
             margin-top: 20px;
-            padding: 12px 24px;
-            background: #f44336;
+            padding: 14px 28px;
+            background: #FF6B6B;
             color: white;
-            border: none;
-            border-radius: 8px;
+            border: 4px solid #2C3E50;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 800;
             transition: all 0.3s;
             width: 100%;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px #2C3E50;
         }
         
         .sign-out-btn:hover {
-            background: #d32f2f;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+            background: #E85757;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #2C3E50;
         }
         
         .features {
@@ -164,42 +249,59 @@
         }
         
         .feature-item {
-            padding: 15px;
-            margin: 10px 0;
-            background: rgba(106, 195, 255, 0.05);
-            border-radius: 8px;
-            border-left: 3px solid #6ac3ff;
+            padding: 18px;
+            margin: 15px 0;
+            background: linear-gradient(90deg, #FFE5E5 0%, #E5F8FF 100%);
+            border-radius: 40% 60% 50% 50% / 50% 50% 60% 40%;
+            border-left: 6px solid #FF6B6B;
+            border-right: 6px solid #4ECDC4;
+            position: relative;
+        }
+        
+        .feature-item::before {
+            content: '◉';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #FFD23F;
         }
         
         .feature-item h3 {
-            color: #0a1530;
-            font-size: 16px;
-            margin-bottom: 5px;
+            color: #2C3E50;
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 800;
         }
         
         .feature-item p {
-            color: #666;
+            color: #34495E;
             font-size: 14px;
             margin: 0;
+            font-weight: 600;
         }
         
         .footer {
             margin-top: 40px;
             padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-            color: #999;
+            border-top: 4px dashed #2C3E50;
+            color: #34495E;
             font-size: 12px;
+            font-weight: 700;
         }
         
         .protected-notice {
             display: none;
             margin-top: 20px;
-            padding: 15px;
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            border-radius: 6px;
-            color: #856404;
+            padding: 18px;
+            background: #FFE5B4;
+            border: 4px solid #FF6B6B;
+            border-radius: 45% 55% 50% 50% / 55% 45% 50% 50%;
+            color: #8B4513;
             font-size: 14px;
+            font-weight: 700;
+            box-shadow: 5px 5px 0px rgba(255, 107, 107, 0.3);
         }
         
         .protected-notice.active {
@@ -219,21 +321,23 @@
         .access-btn {
             display: inline-block;
             margin: 10px;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #95E1D3 100%);
+            color: #2C3E50;
+            border: 4px solid #2C3E50;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 800;
             text-decoration: none;
             transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 5px 5px 0px #2C3E50;
         }
         
         .access-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px #2C3E50;
         }
     </style>
 </head>
