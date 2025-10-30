@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import { createServer } from 'http';
 import { config, validateConfig } from './config';
 import {
   verifyGoogleToken,
@@ -8,6 +9,9 @@ import {
   requireCouncilOrSeedbringer,
   AuthenticatedRequest
 } from './middleware/googleAuth';
+import { SentimentoWSHub } from './ws/sentimento';
+import { SentimentoLiveEvent } from './types/sentimento';
+import { seed003KPI } from './kpi/seed003';
 
 // Validate configuration at startup
 try {
@@ -19,6 +23,12 @@ try {
 }
 
 const app = express();
+
+// Initialize SentimentoWSHub
+const sentimentoHub = new SentimentoWSHub({
+  broadcastHz: config.sentimentoBroadcastHz,
+  bufferMaxKb: config.sentimentoBufferMaxKb
+});
 
 // Rate limiting configuration
 const limiter = rateLimit({
@@ -95,18 +105,79 @@ app.post('/allocations', strictLimiter, verifyGoogleToken, requireSeedbringer, (
   });
 });
 
+/**
+ * GET /kpi/hope-ratio - Retrieve Seed-003 hope-ratio KPI
+ * Accessible by: Council or Seedbringer
+ */
+app.get('/kpi/hope-ratio', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const stats = seed003KPI.getStats();
+  res.json({
+    hopeRatio: stats.hopeRatio,
+    sampleCount: stats.sampleCount,
+    avgHope: stats.avgHope,
+    avgSorrow: stats.avgSorrow,
+    user: req.user?.email,
+    role: req.user?.role
+  });
+});
+
+/**
+ * POST /ingest/sentimento - Ingest sentimento data and broadcast to WebSocket clients
+ * Scaffold endpoint - currently unauthenticated (can be gated later)
+ */
+app.post('/ingest/sentimento', strictLimiter, (req: Request, res: Response) => {
+  try {
+    const { composites, metadata } = req.body;
+
+    // Validate composites
+    if (!composites || typeof composites.hope !== 'number' || typeof composites.sorrow !== 'number') {
+      res.status(400).json({ error: 'Invalid payload: composites.hope and composites.sorrow are required' });
+      return;
+    }
+
+    // Create event
+    const event: SentimentoLiveEvent = {
+      composites: {
+        hope: composites.hope,
+        sorrow: composites.sorrow
+      },
+      timestamp: new Date().toISOString(),
+      metadata: metadata || {}
+    };
+
+    // Broadcast to all WebSocket clients
+    sentimentoHub.broadcast(event);
+
+    res.json({
+      message: 'Sentimento data ingested and broadcasted',
+      clientCount: sentimentoHub.getClientCount(),
+      event
+    });
+  } catch (error) {
+    console.error('Error ingesting sentimento data:', error);
+    res.status(500).json({ error: 'Failed to ingest sentimento data' });
+  }
+});
+
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: express.NextFunction) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Create HTTP server from Express app
+const httpServer = createServer(app);
+
+// Attach SentimentoWSHub to the HTTP server
+sentimentoHub.attach(httpServer, '/api/v2/sentimento/live');
+
 // Start server
-const server = app.listen(config.port, () => {
+httpServer.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
   console.log(`CORS allow origin: ${config.corsAllowOrigin}`);
   console.log(`Seedbringer emails: ${config.seedbringerEmails.join(', ')}`);
   console.log(`Council emails: ${config.councilEmails.join(', ')}`);
+  console.log(`WebSocket endpoint: ws://localhost:${config.port}/api/v2/sentimento/live`);
 });
 
 export default app;

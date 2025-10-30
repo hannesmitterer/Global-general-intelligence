@@ -10,7 +10,9 @@ export const config = {
   councilEmails: (process.env.COUNCIL_EMAILS || '').split(',').map(e => e.trim()),
   requiredScopesSeedbringer: (process.env.REQUIRED_SCOPES_SEEDBRINGER || '').split(' ').filter(s => s),
   requiredScopesCouncil: (process.env.REQUIRED_SCOPES_COUNCIL || '').split(' ').filter(s => s),
-  corsAllowOrigin: process.env.CORS_ALLOW_ORIGIN || '*'
+  corsAllowOrigin: process.env.CORS_ALLOW_ORIGIN || '*',
+  sentimentoBroadcastHz: parseInt(process.env.SENTIMENTO_BROADCAST_HZ || '10', 10),
+  sentimentoBufferMaxKb: parseInt(process.env.SENTIMENTO_BUFFER_MAX_KB || '512', 10)
 };
 
 export function validateConfig(): void {
