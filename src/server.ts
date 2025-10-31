@@ -7,6 +7,12 @@ import * as hopeKpi from './kpi/hope';
 
 dotenv.config();
 
+// Extend Express Request to include authentication data
+interface AuthenticatedRequest extends Request {
+  principal?: string;
+  role?: string;
+}
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -84,8 +90,9 @@ async function requireCouncil(req: Request, res: Response, next: NextFunction) {
     return res.status(403).json({ error: 'Access denied. Council authorization required.' });
   }
   
-  (req as any).principal = verified.email;
-  (req as any).role = verified.role;
+  const authReq = req as AuthenticatedRequest;
+  authReq.principal = verified.email;
+  authReq.role = verified.role;
   next();
 }
 
@@ -103,8 +110,9 @@ async function requireSeedbringer(req: Request, res: Response, next: NextFunctio
     return res.status(403).json({ error: 'Access denied. Seedbringer authorization required.' });
   }
   
-  (req as any).principal = verified.email;
-  (req as any).role = verified.role;
+  const authReq = req as AuthenticatedRequest;
+  authReq.principal = verified.email;
+  authReq.role = verified.role;
   next();
 }
 
@@ -115,8 +123,9 @@ app.get('/health', (req: Request, res: Response) => {
 
 // ALO-001 Endpoint: GET /sfi (Council required)
 app.get('/sfi', authLimiter, requireCouncil, (req: Request, res: Response) => {
-  const principal = (req as any).principal;
-  const role = (req as any).role;
+  const authReq = req as AuthenticatedRequest;
+  const principal = authReq.principal;
+  const role = authReq.role;
   res.json({
     principal,
     role,
@@ -127,8 +136,9 @@ app.get('/sfi', authLimiter, requireCouncil, (req: Request, res: Response) => {
 
 // ALO-001 Endpoint: GET /mcl/live (Council required)
 app.get('/mcl/live', authLimiter, requireCouncil, (req: Request, res: Response) => {
-  const principal = (req as any).principal;
-  const role = (req as any).role;
+  const authReq = req as AuthenticatedRequest;
+  const principal = authReq.principal;
+  const role = authReq.role;
   res.json({
     principal,
     role,
@@ -139,8 +149,9 @@ app.get('/mcl/live', authLimiter, requireCouncil, (req: Request, res: Response) 
 
 // ALO-001 Endpoint: POST /allocations (Seedbringer required)
 app.post('/allocations', authLimiter, requireSeedbringer, (req: Request, res: Response) => {
-  const principal = (req as any).principal;
-  const role = (req as any).role;
+  const authReq = req as AuthenticatedRequest;
+  const principal = authReq.principal;
+  const role = authReq.role;
   const { op } = req.body;
   res.json({
     actor: principal,
