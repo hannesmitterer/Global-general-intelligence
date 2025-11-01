@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <p>
+        https://seedbringer-interface.onrender.com <p>
+            
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGI - Confluence Portal</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', 'Comic Sans MS', cursive;
+            background: linear-gradient(45deg, #FFD23F 0%, #4ECDC4 25%, #FF6B6B 50%, #95E1D3 75%, #F38181 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Miró-style floating organic shapes */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #FF6B6B 30%, transparent 70%);
+            border-radius: 60% 40% 50% 70%;
+            animation: float1 15s ease-in-out infinite;
+            opacity: 0.6;
+        }
+        
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            right: 10%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(ellipse, #4ECDC4 40%, transparent 70%);
+            border-radius: 40% 60% 70% 30%;
+            animation: float2 12s ease-in-out infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(30px, -40px) rotate(180deg); }
+        }
+        
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(-25px, 30px) rotate(-180deg) scale(1.2); }
+        }
+        
+        .container {
+            background: #FFFEF2;
+            border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%;
+            padding: 60px 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 15px 15px 0px #FF6B6B, -10px -10px 0px #4ECDC4;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            border: 6px solid #2C3E50;
+        }
+        
+        /* Miró-style decorative circles */
+        .container::before {
+            content: '●';
+            position: absolute;
+            top: -30px;
+            right: 30px;
+            font-size: 60px;
+            color: #FFD23F;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .container::after {
+            content: '◆';
+            position: absolute;
+            bottom: -20px;
+            left: 40px;
+            font-size: 50px;
+            color: #95E1D3;
+            transform: rotate(45deg);
+            animation: spin 8s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(45deg); }
+            to { transform: rotate(405deg); }
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #FFD23F 100%);
+            border-radius: 47% 53% 42% 58% / 55% 48% 52% 45%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 8px 8px 0px #2C3E50;
+            animation: morph 6s ease-in-out infinite;
+            border: 4px solid #2C3E50;
+        }
+        
+        @keyframes morph {
+            0%, 100% { border-radius: 47% 53% 42% 58% / 55% 48% 52% 45%; }
+            25% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 40% 60%; }
+            75% { border-radius: 58% 42% 55% 45% / 45% 55% 45% 55%; }
+        }
+        
+        h1 {
+            color: #2C3E50;
+            margin-bottom: 10px;
+            font-size: 36px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #FFD23F;
+        }
+        
+        .subtitle {
+            color: #34495E;
+            margin-bottom: 40px;
+            font-size: 18px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .auth-section {
+            margin: 30px 0;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #F8E5E5 0%, #E8F5F8 100%);
+            border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%;
+            border: 4px solid #2C3E50;
+            position: relative;
+        }
+        
+        /* Decorative Miró elements */
+        .auth-section::before {
+            content: '★';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 24px;
+            color: #FF6B6B;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: rotate(0deg); }
+            50% { opacity: 0.5; transform: rotate(180deg); }
+        }
+        
+        .auth-prompt {
+            color: #2C3E50;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+        
+        #googleSignInDiv {
+            display: flex;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        .user-info {
+            display: none;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #E8F5E9 0%, #FFF9C4 100%);
+            border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%;
+            border: 5px solid #2C3E50;
+            text-align: left;
+            box-shadow: 6px 6px 0px #4ECDC4;
+        }
+        
+        .user-info.active {
+            display: block;
+        }
+        
+        .user-info p {
+            margin: 10px 0;
+            color: #2C3E50;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .user-info strong {
+            color: #FF6B6B;
+            font-weight: 800;
+        }
+        
+        .user-email {
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 2px dashed #FF6B6B;
+        }
+        
+        .sign-out-btn {
+            margin-top: 20px;
+            padding: 14px 28px;
+            background: #FF6B6B;
+            color: white;
+            border: 4px solid #2C3E50;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 800;
+            transition: all 0.3s;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px #2C3E50;
+        }
+        
+        .sign-out-btn:hover {
+            background: #E85757;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #2C3E50;
+        }
+        
+        .features {
+            margin-top: 40px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            padding: 18px;
+            margin: 15px 0;
+            background: linear-gradient(90deg, #FFE5E5 0%, #E5F8FF 100%);
+            border-radius: 40% 60% 50% 50% / 50% 50% 60% 40%;
+            border-left: 6px solid #FF6B6B;
+            border-right: 6px solid #4ECDC4;
+            position: relative;
+        }
+        
+        .feature-item::before {
+            content: '◉';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #FFD23F;
+        }
+        
+        .feature-item h3 {
+            color: #2C3E50;
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+        
+        .feature-item p {
+            color: #34495E;
+            font-size: 14px;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 4px dashed #2C3E50;
+            color: #34495E;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .protected-notice {
+            display: none;
+            margin-top: 20px;
+            padding: 18px;
+            background: #FFE5B4;
+            border: 4px solid #FF6B6B;
+            border-radius: 45% 55% 50% 50% / 55% 45% 50% 50%;
+            color: #8B4513;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 5px 5px 0px rgba(255, 107, 107, 0.3);
+        }
+        
+        .protected-notice.active {
+            display: block;
+        }
+        
+        .access-granted {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .access-granted.active {
+            display: block;
+        }
+        
+        .access-btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #95E1D3 100%);
+            color: #2C3E50;
+            border: 4px solid #2C3E50;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 5px 5px 0px #2C3E50;
+        }
+        
+        .access-btn:hover {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px #2C3E50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">G</div>
+        <h1>Confluence Portal</h1>
+        <p class="subtitle">Global General Intelligence • Operational Layer</p>
+        
+        <div class="auth-section">
+            <p class="auth-prompt">Sign in to access the system</p>
+            <div id="googleSignInDiv"></div>
+        </div>
+        
+        <div id="userInfo" class="user-info">
+            <p><strong>Authenticated:</strong> <span class="user-email" id="userEmail"></span></p>
+            <p><strong>Role:</strong> <span id="userRole"></span></p>
+            <p><strong>Status:</strong> <span id="userStatus">Access granted</span></p>
+            <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+        </div>
+        
+        <div id="protectedNotice" class="protected-notice">
+            <strong>⚠️ Access Restricted</strong><br>
+            Your account is not authorized for this system. Please contact an administrator.
+        </div>
+        
+        <div id="accessGranted" class="access-granted">
+            <h3 style="margin-bottom: 20px; color: #0a1530;">Select your destination:</h3>
+            <a href="/pbl-001/" class="access-btn">PBL-001 Dashboard</a>
+            <a href="/api/v2/sentimento/live" class="access-btn" target="_blank">Sentimento Live</a>
+        </div>
+        
+        <div class="features" id="featuresSection">
+            <div class="feature-item">
+                <h3>🔒 Secure Authentication</h3>
+                <p>One-click Google sign-in with RBAC protection</p>
+            </div>
+            <div class="feature-item">
+                <h3>📊 Real-time Metrics</h3>
+                <p>WebSocket-powered Sentimento Live streaming</p>
+            </div>
+            <div class="feature-item">
+                <h3>🎯 Role-Based Access</h3>
+                <p>Seedbringer and Council tier permissions</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            ZFAL-001 Compliant • Zero-Friction Authentication Layer<br>
+            ALO-001 Protected • Seed-003 Integrated
+        </div>
+    </div>
+
+    <script>
+        let idToken = null;
+        let userRole = null;
+        
+        // Configuration - replace with actual Client ID
+        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+        
+        // Role definitions (matches backend)
+        const SEEDBRINGER_EMAILS = ['hannes.mitterer@gmail.com'];
+        const COUNCIL_EMAILS = ['dietmar.zuegg@gmail.com', 'bioarchitettura.rivista@gmail.com', 'consultant.laquila@gmail.com'];
+        
+        // Initialize Google Sign-In (ZFAL-001 compliant)
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse,
+                auto_select: false
+            });
+            
+            // Render the standard Google Sign-In button
+            google.accounts.id.renderButton(
+                document.getElementById('googleSignInDiv'),
+                { 
+                    theme: 'filled_blue',
+                    size: 'large',
+                    text: 'signin_with',
+                    width: 300,
+                    logo_alignment: 'left'
+                }
+            );
+        };
+        
+        // Single-click authentication handler
+        function handleCredentialResponse(response) {
+            idToken = response.credential;
+            
+            // Decode JWT to extract user information (client-side display only)
+            const payload = JSON.parse(atob(idToken.split('.')[1]));
+            const email = payload.email;
+            
+            // Determine role (server validates, this is for UX only)
+            if (SEEDBRINGER_EMAILS.includes(email)) {
+                userRole = 'Seedbringer';
+                showAuthenticatedUI(email, userRole, true);
+            } else if (COUNCIL_EMAILS.includes(email)) {
+                userRole = 'Council';
+                showAuthenticatedUI(email, userRole, true);
+            } else {
+                userRole = 'Unauthorized';
+                showAuthenticatedUI(email, userRole, false);
+            }
+        }
+        
+        // Update UI after authentication
+        function showAuthenticatedUI(email, role, authorized) {
+            // Hide sign-in button
+            document.getElementById('googleSignInDiv').style.display = 'none';
+            
+            // Show user info
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userRole').textContent = role;
+            document.getElementById('userInfo').classList.add('active');
+            
+            if (authorized) {
+                // Show access options
+                document.getElementById('accessGranted').classList.add('active');
+                document.getElementById('featuresSection').style.display = 'none';
+            } else {
+                // Show restricted notice
+                document.getElementById('protectedNotice').classList.add('active');
+                document.getElementById('userStatus').textContent = 'Access denied';
+                document.getElementById('userStatus').style.color = '#f44336';
+            }
+        }
+        
+        // Sign out handler
+        function signOut() {
+            google.accounts.id.disableAutoSelect();
+            idToken = null;
+            userRole = null;
+            
+            // Reset UI
+            document.getElementById('googleSignInDiv').style.display = 'flex';
+            document.getElementById('userInfo').classList.remove('active');
+            document.getElementById('protectedNotice').classList.remove('active');
+            document.getElementById('accessGranted').classList.remove('active');
+            document.getElementById('featuresSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
