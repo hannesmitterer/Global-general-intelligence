@@ -50,14 +50,14 @@ export const consolidatedWalletConfig: ConsolidatedWalletConfig = {
     startDate: '2025-12-01T00:00:00Z',
     
     /**
-     * Fundraising goal: 5,000,000 units of the collection asset
+     * Fundraising goal: 5,000,000 units of the fundraising asset
      */
     goal: 5000000,
     
     /**
      * Current status
      */
-    status: 'In attesa di conferma finale della chain'
+    status: 'Awaiting final chain confirmation'
   }
 };
 

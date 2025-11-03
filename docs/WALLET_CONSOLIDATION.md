@@ -53,7 +53,7 @@ The following parameters need to be confirmed before full deployment:
 - **Note**: Units are in the fundraising asset (to be confirmed)
 
 ### Current Status
-- **Status**: "In attesa di conferma finale della chain" (Awaiting final chain confirmation)
+- **Status**: "Awaiting final chain confirmation"
 
 ## API Access
 
@@ -83,7 +83,7 @@ Retrieve the consolidated wallet configuration.
   "offering": {
     "startDate": "2025-12-01T00:00:00Z",
     "goal": 5000000,
-    "status": "In attesa di conferma finale della chain"
+    "status": "Awaiting final chain confirmation"
   },
   "_metadata": {
     "isFullyConfigured": false,
