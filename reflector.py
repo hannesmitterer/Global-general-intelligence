@@ -9,7 +9,6 @@ from datetime import datetime
 from red_code import load_red_code, save_red_code, RED_CODE_PATH
 
 LOGS_DIR = "logs"
-REFLECTION_LOG = os.path.join(LOGS_DIR, f"reflection_{datetime.utcnow().strftime('%Y%m%d')}.json")
 
 def reflect_and_suggest():
     # Load current state
@@ -46,10 +45,11 @@ def reflect_and_suggest():
         # best-effort only
         pass
 
-    # write a reflection log entry
+    # write a reflection log entry with current date
+    reflection_log = os.path.join(LOGS_DIR, f"reflection_{datetime.utcnow().strftime('%Y%m%d')}.json")
     try:
         os.makedirs(LOGS_DIR, exist_ok=True)
-        with open(REFLECTION_LOG, "a", encoding="utf-8") as f:
+        with open(reflection_log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"reflection": event, "suggestion": suggestion}, ensure_ascii=False) + "\n")
     except Exception:
         pass

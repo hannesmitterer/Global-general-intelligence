@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from sentimento_pulse_interface import SentimentoPulseInterface
-from red_code import RED_CODE, ensure_red_code  # changed: top-level module
+from red_code import RED_CODE, ensure_red_code, load_red_code  # changed: top-level module
 from reflector import reflect_and_suggest      # changed: top-level module
 from tutor_nomination import TutorNomination   # changed: top-level module
 import json
@@ -58,7 +58,11 @@ def index():
 
 @app.route("/api/red_code")
 def api_red_code():
-    return jsonify(RED_CODE)
+    try:
+        return jsonify(load_red_code())
+    except Exception:
+        # If file doesn't exist or is invalid, return default
+        return jsonify(RED_CODE)
 
 @app.route("/api/pulses")
 def api_pulses():
