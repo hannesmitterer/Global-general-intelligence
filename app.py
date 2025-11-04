@@ -98,4 +98,6 @@ def api_pulse():
 if __name__ == "__main__":
     # local dev: ensure directories and run
     os.makedirs("logs", exist_ok=True)
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("FLASK_PORT", 5000)))
+    # Only enable debug mode if explicitly set in environment (for local dev only)
+    debug_mode = os.environ.get("FLASK_DEBUG", "0").lower() in ("1", "true", "yes")
+    app.run(debug=debug_mode, host="0.0.0.0", port=int(os.environ.get("FLASK_PORT", 5000)))
