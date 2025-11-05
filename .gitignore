@@ -47,3 +47,8 @@ package-lock.json
 # TypeScript
 *.tsbuildinfo
 dist/
+
+# Flask app generated files
+red_code.json
+tutors.json
+logs/

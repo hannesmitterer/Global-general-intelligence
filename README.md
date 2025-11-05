@@ -172,3 +172,88 @@ Edit `.env` to configure authorized users. See `.env.example` for the required f
 SEEDBRINGER_EMAILS=user1@example.com
 COUNCIL_EMAILS=user2@example.com, user3@example.com
 ```
+
+---
+
+## Flask Application - Euystacio Sentiment & Reflection API
+
+### Overview
+
+The Flask application provides a REST API for managing emotional pulses, automated reflections, and tutor nominations within the Euystacio framework.
+
+### Features
+
+- **RED_CODE State Management**: Tracks symbiosis level and growth history
+- **Sentiment Pulse Interface**: Receive and log emotional/sentiment pulses
+- **Automated Reflection**: Generate reflections and suggestions based on current state
+- **Tutor Nomination**: Manage and nominate tutors based on resonance
+- **Interactive Web UI**: Browser-based interface for testing all API endpoints
+
+### Quick Start
+
+#### Local Development
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Flask app (with debug mode for local dev)
+FLASK_DEBUG=1 python3 app.py
+
+# Access the web UI at http://localhost:5000
+```
+
+#### Production Deployment with Docker
+
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Access via nginx reverse proxy at http://localhost
+```
+
+### API Endpoints
+
+- `GET /` - Web UI interface
+- `GET /api/red_code` - Get current RED_CODE state
+- `GET /api/pulses` - Get all recorded pulses
+- `POST /api/pulse` - Submit a new emotional pulse
+  ```json
+  {
+    "emotion": "joy",
+    "intensity": 0.8,
+    "clarity": "high",
+    "note": "Optional context"
+  }
+  ```
+- `GET /api/reflect` - Run automated reflection
+- `GET /api/reflections` - Get all reflections
+- `GET /api/tutors` - Get list of tutors
+
+### Testing
+
+```bash
+# Run the comprehensive test suite
+python3 test_flask_app.py -v
+```
+
+### Architecture
+
+- **app.py**: Main Flask application with routes
+- **red_code.py**: RED_CODE state management and persistence
+- **reflector.py**: Automated reflection engine
+- **tutor_nomination.py**: Tutor management system
+- **sentimento_pulse_interface.py**: Sentiment pulse tracking
+- **templates/index.html**: Interactive web UI
+
+### Configuration
+
+Environment variables:
+- `FLASK_PORT`: Server port (default: 5000)
+- `FLASK_DEBUG`: Enable debug mode (default: disabled for security)
+
+### Screenshots
+
+![Flask App Home](https://github.com/user-attachments/assets/1932491e-aa0c-4efc-8926-a813581418fb)
+![RED_CODE API Response](https://github.com/user-attachments/assets/237d7457-554d-4ebb-83c5-13f514355a1b)
+

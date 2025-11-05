@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euystacio - Global General Intelligence</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .api-section {
+            margin: 20px 0;
+        }
+        .api-section h2 {
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .output {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 60px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Euystacio - Global General Intelligence</h1>
+    
+    <div class="container">
+        <h2>Welcome to Euystacio</h2>
+        <p>A collaborative artificial intelligence framework for global general intelligence processing.</p>
+        <p>Use the API endpoints below to interact with the system.</p>
+    </div>
+
+    <div class="container api-section">
+        <h2>RED_CODE State</h2>
+        <button onclick="fetchRedCode()">Get RED_CODE</button>
+        <div id="redcode-output" class="output"></div>
+    </div>
+
+    <div class="container api-section">
+        <h2>Pulses</h2>
+        <button onclick="fetchPulses()">Get All Pulses</button>
+        <div id="pulses-output" class="output"></div>
+    </div>
+
+    <div class="container api-section">
+        <h2>Send Pulse</h2>
+        <div class="form-group">
+            <label>Emotion/Feeling:</label>
+            <input type="text" id="emotion" placeholder="e.g., joy, curiosity, excitement">
+        </div>
+        <div class="form-group">
+            <label>Intensity (0.0 - 1.0):</label>
+            <input type="number" id="intensity" min="0" max="1" step="0.1" value="0.5">
+        </div>
+        <div class="form-group">
+            <label>Clarity:</label>
+            <select id="clarity">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Note (optional):</label>
+            <textarea id="note" placeholder="Any additional context or notes..."></textarea>
+        </div>
+        <button onclick="sendPulse()">Send Pulse</button>
+        <div id="pulse-output" class="output"></div>
+    </div>
+
+    <div class="container api-section">
+        <h2>Reflection</h2>
+        <button onclick="runReflection()">Run Reflection</button>
+        <div id="reflection-output" class="output"></div>
+        <button onclick="fetchReflections()">Get All Reflections</button>
+        <div id="reflections-output" class="output"></div>
+    </div>
+
+    <div class="container api-section">
+        <h2>Tutors</h2>
+        <button onclick="fetchTutors()">Get Tutors</button>
+        <div id="tutors-output" class="output"></div>
+    </div>
+
+    <script>
+        async function fetchRedCode() {
+            try {
+                const response = await fetch('/api/red_code');
+                const data = await response.json();
+                document.getElementById('redcode-output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('redcode-output').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchPulses() {
+            try {
+                const response = await fetch('/api/pulses');
+                const data = await response.json();
+                document.getElementById('pulses-output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('pulses-output').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function sendPulse() {
+            try {
+                const emotion = document.getElementById('emotion').value;
+                const intensity = parseFloat(document.getElementById('intensity').value);
+                const clarity = document.getElementById('clarity').value;
+                const note = document.getElementById('note').value;
+
+                const response = await fetch('/api/pulse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ emotion, intensity, clarity, note })
+                });
+                const data = await response.json();
+                document.getElementById('pulse-output').textContent = JSON.stringify(data, null, 2);
+                
+                // Clear form
+                document.getElementById('emotion').value = '';
+                document.getElementById('note').value = '';
+            } catch (error) {
+                document.getElementById('pulse-output').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function runReflection() {
+            try {
+                const response = await fetch('/api/reflect');
+                const data = await response.json();
+                document.getElementById('reflection-output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('reflection-output').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchReflections() {
+            try {
+                const response = await fetch('/api/reflections');
+                const data = await response.json();
+                document.getElementById('reflections-output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('reflections-output').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchTutors() {
+            try {
+                const response = await fetch('/api/tutors');
+                const data = await response.json();
+                document.getElementById('tutors-output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('tutors-output').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
