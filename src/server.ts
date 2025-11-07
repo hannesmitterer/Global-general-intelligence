@@ -12,6 +12,7 @@ import {
 import { SentimentoWSHub } from './ws/sentimento';
 import { SentimentoLiveEvent } from './types/sentimento';
 import { seed003KPI } from './kpi/seed003';
+import { getWalletConfig, isWalletFullyConfigured, getPendingConfigItems } from './config/wallet';
 
 // Validate configuration at startup
 try {
@@ -158,6 +159,27 @@ app.post('/ingest/sentimento', strictLimiter, (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to ingest sentimento data' });
   }
 });
+
+/**
+ * GET /wallet/config - Retrieve consolidated wallet configuration
+ * Accessible by: Council or Seedbringer
+ */
+app.get('/wallet/config', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const walletConfig = getWalletConfig();
+  const isFullyConfigured = isWalletFullyConfigured();
+  const pendingItems = getPendingConfigItems();
+
+  res.json({
+    ...walletConfig,
+    _metadata: {
+      isFullyConfigured,
+      pendingConfigItems: pendingItems,
+      user: req.user?.email,
+      role: req.user?.role
+    }
+  });
+});
+
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: express.NextFunction) => {

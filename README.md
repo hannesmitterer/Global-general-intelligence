@@ -172,3 +172,13 @@ Edit `.env` to configure authorized users. See `.env.example` for the required f
 SEEDBRINGER_EMAILS=user1@example.com
 COUNCIL_EMAILS=user2@example.com, user3@example.com
 ```
+
+### Wallet Consolidation
+
+The project includes consolidated wallet configuration for investment operations. All investment wallets (governance audit, digital bonds) are now consolidated into a single primary EVM address:
+
+- **Primary Address**: `0x6c10692145718353070cc6cb5c21adf2073ffa1f`
+- **Endpoint**: `GET /wallet/config` (authenticated)
+- **Documentation**: See [docs/WALLET_CONSOLIDATION.md](docs/WALLET_CONSOLIDATION.md) for details
+
+**Note**: Chain, asset, and decimals parameters are pending final confirmation.
