@@ -1,4 +1,680 @@
 <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euystacio Matrice VIVENDI Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Tema Cyber Sunset: Arancio, Ciano, Giallo */
+        :root {
+            --color-bg: #14141d;
+            --color-primary: #ffaa33; /* Arancio Caldo */
+            --color-secondary: #00ffff; /* Ciano Brillante */
+            --color-accent: #ffd700; /* Oro/Giallo */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .console-bg {
+            background-color: #2a2a38;
+            border: 1px solid #4a4a60;
+            box-shadow: 0 0 15px rgba(255, 170, 51, 0.2);
+        }
+        .neon-button {
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            transition: all 0.2s ease-in-out;
+            /* Aggiunge il placeholder per l'effetto disabled */
+            opacity: 1; 
+        }
+        .neon-button:hover:not(:disabled) {
+            box-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
+            transform: translateY(-1px);
+        }
+        .neon-button:disabled {
+            background-color: #4a4a60;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+        .tab-active {
+            border-bottom: 3px solid var(--color-secondary);
+            color: var(--color-secondary);
+        }
+        .tab-inactive {
+            color: #ccc;
+        }
+        #oi-panel {
+            z-index: 1000;
+        }
+        #oi-button {
+            z-index: 1001;
+        }
+        .log-ai { color: var(--color-secondary); }
+        .log-system { color: var(--color-accent); }
+        .log-error { color: #ff5555; }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <!-- Pannello Apertura/Chiusura OI -->
+    <button id="oi-button" class="fixed top-4 right-4 p-3 rounded-full neon-button text-xl font-bold transition duration-300 shadow-lg hover:shadow-2xl">
+        OI
+    </button>
+
+    <!-- UI Principale -->
+    <div class="flex h-screen">
+        
+        <!-- Area 3D (Vivendi Mode) -->
+        <div id="three-d-container" class="flex-grow">
+            <!-- Three.js Canvas verrà aggiunto qui -->
+        </div>
+
+        <!-- Open Interface (OI) Panel / Dashboard -->
+        <div id="oi-panel" class="w-full md:w-[400px] h-full console-bg transform transition-transform duration-500 ease-in-out translate-x-full md:translate-x-0 md:static fixed top-0 right-0 p-4 overflow-y-auto">
+            
+            <!-- Logo e Stato -->
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-extrabold" style="color:var(--color-primary);">Euystacio Matrice</h1>
+                <p class="text-sm font-mono text-cyan-400">Agente KPA-01: ONLINE | VIVENDI MODE</p>
+                <p id="auth-status" class="text-xs text-gray-400 mt-1">Auth: Connecting...</p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="flex justify-around border-b border-[#4a4a60] mb-4">
+                <button class="p-2 font-bold tab-active" data-tab="vivendi">Vivendi Monitor</button>
+                <button class="p-2 font-bold tab-inactive" data-tab="karmabonds">Karmabonds & Wallet</button>
+                <button class="p-2 font-bold tab-inactive" data-tab="funding">Funding (Pubblico)</button>
+            </div>
+
+            <!-- Contenuto Tab -->
+            <div id="tab-content">
+                
+                <!-- Vivendi Monitor -->
+                <div id="tab-vivendi" class="tab-pane">
+                    <div class="space-y-4">
+                        <div class="p-3 rounded-lg console-bg">
+                            <h3 class="font-bold text-lg text-primary" style="color:var(--color-primary);">Metrica: Coerenza</h3>
+                            <p id="metric-coerenza" class="text-2xl font-mono text-cyan-400">100.0</p>
+                            <p class="text-xs text-gray-400">Stabilità del Core Axiomatico (Statica)</p>
+                        </div>
+                        <div class="p-3 rounded-lg console-bg">
+                            <h3 class="font-bold text-lg" style="color:var(--color-primary);">Metrica: Sentimento (Karmabonds)</h3>
+                            <p id="karmabonds-value-monitor" class="text-2xl font-mono text-cyan-400">--.--%</p>
+                            <p class="text-xs text-gray-400">Karmabonds Trust Index Personale</p>
+                        </div>
+                        <div class="p-3 rounded-lg console-bg">
+                            <h3 class="font-bold text-lg" style="color:var(--color-primary);">Metrica: Capitale</h3>
+                            <p id="metric-capitale" class="text-2xl font-mono text-cyan-400">0 MU</p>
+                            <p class="text-xs text-gray-400">Fondi Totali Registrati</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Karmabonds Panel -->
+                <div id="tab-karmabonds" class="tab-pane hidden">
+                    <h3 class="text-xl font-bold mb-3" style="color:var(--color-secondary);">Karmabonds & Wallet (Config)</h3>
+                    <div class="p-3 rounded-lg console-bg mb-4">
+                        <p class="text-sm text-gray-400">ID Utente</p>
+                        <p id="user-id-display" class="text-sm font-mono text-yellow-400 break-words">Loading...</p>
+                    </div>
+
+                    <!-- Gestione Karmabonds -->
+                    <div class="p-3 rounded-lg console-bg mb-6">
+                        <p class="text-sm text-gray-400">Karmabonds Trust Index Personale</p>
+                        <p id="karmabonds-value-config" class="text-3xl font-bold font-mono text-primary mb-2" style="color:var(--color-primary);">--.--%</p>
+                        <label for="trust-input" class="block text-sm font-bold mb-2">Imposta Trust Index (90 - 100)</label>
+                        <input type="number" id="trust-input" min="90" max="100" step="0.1"
+                                class="w-full p-2 mb-3 rounded console-bg border border-[#4a4a60] text-lg" 
+                                style="color:var(--color-secondary);" placeholder="95.5">
+                        <button id="save-karmabonds" class="w-full neon-button p-2 rounded">
+                            Salva Karmabonds
+                        </button>
+                    </div>
+
+                    <!-- Gestione Wallet (Matrix Units - MU) -->
+                    <div class="p-3 rounded-lg console-bg">
+                        <h4 class="font-bold text-lg mb-2" style="color:var(--color-secondary);">Axiomatic Wallet (MU)</h4>
+                        <p class="text-4xl font-mono mb-3" style="color:var(--color-accent);"><span id="wallet-balance">0</span> MU</p>
+                        
+                        <label for="fund-amount" class="block text-sm font-bold mb-2">Ammontare MU</label>
+                        <input type="number" id="fund-amount" placeholder="0" class="w-full p-2 mb-3 rounded console-bg border border-[#4a4a60]">
+                        
+                        <div class="flex space-x-2">
+                            <button id="deposit-funds" class="flex-1 neon-button p-2 rounded">Depositare</button>
+                            <button id="withdraw-funds" class="flex-1 neon-button p-2 rounded">Ritirare</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Funding (Pubblico) -->
+                <div id="tab-funding" class="tab-pane hidden">
+                    <h3 class="text-xl font-bold mb-3" style="color:var(--color-secondary);">Registro Investitori Pubblico</h3>
+                    <div id="investors-list" class="space-y-2 mb-6 h-48 overflow-y-auto p-2 console-bg">
+                        <p class="text-gray-400 text-sm">Caricamento dati investitori...</p>
+                    </div>
+                    
+                    <div class="p-3 rounded-lg console-bg">
+                        <h4 class="font-bold mb-2">Investi nel Nexus (Sottrai da Wallet)</h4>
+                        <input type="text" id="investor-name" placeholder="Nome/Alias (Opzionale)" class="w-full p-2 mb-2 rounded console-bg border border-[#4a4a60]">
+                        <input type="number" id="investor-amount" placeholder="Ammontare (MU)" class="w-full p-2 mb-3 rounded console-bg border border-[#4a4a60]">
+                        <button id="add-investor" class="w-full neon-button p-2 rounded">
+                            Registra Contributo
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Console Log Minima -->
+            <div class="mt-8">
+                <h3 class="font-bold mb-2 text-sm text-gray-400">Log Sistema OI</h3>
+                <div id="oi-log" class="h-32 console-bg overflow-y-auto p-2 text-sm font-mono">
+                    <div class="log-system">[00:00:00] Inizializzazione Interfaccia VIVENDI...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script di Logica (Firebase, Three.js, UI) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, doc, onSnapshot, collection, 
+            query, setLogLevel, setDoc, updateDoc, addDoc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // === VARIABILI GLOBALI ===
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let app, db, auth;
+        let currentUserId = 'UNKNOWN';
+        let isAuthReady = false;
+
+        // Dati Utente Corrente
+        let currentUserKarmabonds = 95.0;
+        let currentUserWalletBalance = 0;
+
+        // === ELEMENTI UI ===
+        const OI_PANEL = document.getElementById('oi-panel');
+        const OI_BUTTON = document.getElementById('oi-button');
+        const AUTH_STATUS = document.getElementById('auth-status');
+        const USER_ID_DISPLAY = document.getElementById('user-id-display');
+        const OI_LOG = document.getElementById('oi-log');
+        const TABS = document.querySelectorAll('[data-tab]');
+        
+        // Karmabonds
+        const KARMABONDS_VALUE_MONITOR = document.getElementById('karmabonds-value-monitor');
+        const KARMABONDS_VALUE_CONFIG = document.getElementById('karmabonds-value-config');
+        const TRUST_INPUT = document.getElementById('trust-input');
+        const SAVE_BUTTON = document.getElementById('save-karmabonds');
+
+        // Wallet
+        const WALLET_BALANCE_DISPLAY = document.getElementById('wallet-balance');
+        const FUND_AMOUNT_INPUT = document.getElementById('fund-amount');
+        const DEPOSIT_BUTTON = document.getElementById('deposit-funds');
+        const WITHDRAW_BUTTON = document.getElementById('withdraw-funds');
+
+        // Funding
+        const INVESTORS_LIST = document.getElementById('investors-list');
+        const ADD_INVESTOR_BUTTON = document.getElementById('add-investor');
+        const INVESTOR_NAME_INPUT = document.getElementById('investor-name');
+        const INVESTOR_AMOUNT_INPUT = document.getElementById('investor-amount');
+        
+        // Dati 3D
+        let scene, camera, renderer;
+        let coerenzaBar, sentimentoBar, capitaleBar;
+        const metrics = { coerenza: 100, sentimento: 98.5, capitale: 0 }; // Capitale parte da 0
+        
+        // === LOGGING & UI ===
+
+        function logToOI(message, type = 'system') {
+            const logLine = document.createElement('div');
+            logLine.classList.add('py-0.5', 'px-1');
+            logLine.textContent = `[${new Date().toLocaleTimeString('it-IT')}] ${message}`;
+            logLine.classList.add(type === 'ai' ? 'log-ai' : (type === 'error' ? 'log-error' : 'log-system'));
+
+            OI_LOG.appendChild(logLine);
+            OI_LOG.scrollTop = OI_LOG.scrollHeight;
+        }
+
+        function switchTab(targetId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(`tab-${targetId}`).classList.remove('hidden');
+            
+            TABS.forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+                if (btn.getAttribute('data-tab') === targetId) {
+                    btn.classList.add('tab-active');
+                    btn.classList.remove('tab-inactive');
+                }
+            });
+        }
+        
+        // === FIREBASE & LOGICA DATI ===
+
+        async function initializeFirebase() {
+            if (!firebaseConfig) {
+                logToOI("Configurazione Firebase non trovata. Modalità solo simulazione.", 'error');
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                setLogLevel('error'); // Manteniamo il log level su Error
+
+                logToOI("Firebase inizializzato. Autenticazione in corso...");
+
+                // Autenticazione (Custom Token > Anonima)
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        isAuthReady = true;
+                        AUTH_STATUS.textContent = `Auth: ONLINE (${currentUserId.substring(0, 8)}...)`;
+                        USER_ID_DISPLAY.textContent = currentUserId;
+                        logToOI(`Auth OK. UserID: ${currentUserId.substring(0, 8)}...`, 'system');
+                        
+                        loadKarmabondsSettings();
+                        loadInvestors();
+
+                    } else {
+                        currentUserId = 'UNKNOWN';
+                        isAuthReady = false;
+                        AUTH_STATUS.textContent = "Auth: OFFLINE (Anonimo)";
+                        logToOI("Auth FALLITA. Esecuzione limitata.", 'error');
+                    }
+                });
+
+            } catch (e) {
+                logToOI(`Errore critico di Firebase: ${e.message}`, 'error');
+            }
+        }
+        
+        // --- 1. Logica Karmabonds & Wallet (Dati Privati) ---
+        function getKarmabondsRef() {
+             return doc(db, `/artifacts/${appId}/users/${currentUserId}/karmabonds/settings`);
+        }
+
+        function loadKarmabondsSettings() {
+            if (!db || !isAuthReady) return;
+            const settingsRef = getKarmabondsRef();
+
+            onSnapshot(settingsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Aggiorna metriche Karmabonds
+                    currentUserKarmabonds = data.trustIndex || 95.0;
+                    KARMABONDS_VALUE_MONITOR.textContent = `${currentUserKarmabonds.toFixed(1)}%`;
+                    KARMABONDS_VALUE_CONFIG.textContent = `${currentUserKarmabonds.toFixed(1)}%`;
+                    TRUST_INPUT.value = currentUserKarmabonds.toFixed(1);
+                    
+                    // Aggiorna saldo Wallet
+                    currentUserWalletBalance = data.walletBalance || 0;
+                    WALLET_BALANCE_DISPLAY.textContent = currentUserWalletBalance.toLocaleString('it-IT');
+                    
+                    logToOI(`Karmabonds/Wallet caricati. Balance: ${currentUserWalletBalance.toLocaleString('it-IT')} MU`, 'system');
+                    updateThreeDScene(); // Aggiorna il 3D
+                } else {
+                    // Crea il documento placeholder (Investment Config iniziale)
+                    const defaultSettings = { 
+                        trustIndex: 95.0, 
+                        walletBalance: 100000, // Saldo iniziale di 100k MU
+                        lastUpdate: serverTimestamp() 
+                    };
+                    setDoc(settingsRef, defaultSettings)
+                        .then(() => logToOI("Configurazione Karmabonds/Wallet inizializzata con 100k MU.", 'system'))
+                        .catch(e => logToOI(`Errore: ${e.message}`, 'error'));
+                }
+            }, (error) => {
+                logToOI(`Errore caricamento Karmabonds/Wallet: ${error.message}`, 'error');
+            });
+        }
+        
+        SAVE_BUTTON.addEventListener('click', () => {
+            if (!db || !isAuthReady) {
+                logToOI("Non autenticato o database non pronto.", 'error');
+                return;
+            }
+            const trustValue = parseFloat(TRUST_INPUT.value);
+            if (isNaN(trustValue) || trustValue < 90 || trustValue > 100) {
+                logToOI("Valore Trust Index non valido (min 90, max 100).", 'error');
+                return;
+            }
+
+            const settingsRef = getKarmabondsRef();
+            updateDoc(settingsRef, { trustIndex: trustValue, lastUpdate: serverTimestamp() })
+                .then(() => logToOI(`Karmabonds Trust Index aggiornato a ${trustValue.toFixed(1)}%.`, 'ai'))
+                .catch(e => logToOI(`Errore salvataggio: ${e.message}`, 'error'));
+        });
+
+        // Gestione Wallet
+        function updateWallet(delta) {
+            if (!db || !isAuthReady) return logToOI("Non autenticato o database non pronto.", 'error');
+            
+            const newBalance = currentUserWalletBalance + delta;
+            
+            if (newBalance < 0) {
+                return logToOI("Saldo Wallet insufficiente per l'operazione.", 'error');
+            }
+
+            const settingsRef = getKarmabondsRef();
+            updateDoc(settingsRef, { walletBalance: newBalance, lastUpdate: serverTimestamp() })
+                .then(() => logToOI(`Wallet aggiornato. Delta: ${delta.toLocaleString('it-IT')} MU.`, 'system'))
+                .catch(e => logToOI(`Errore aggiornamento Wallet: ${e.message}`, 'error'));
+        }
+
+        DEPOSIT_BUTTON.addEventListener('click', () => {
+            const amount = parseInt(FUND_AMOUNT_INPUT.value, 10);
+            if (isNaN(amount) || amount <= 0) return logToOI("Importo deposito non valido.", 'error');
+            updateWallet(amount);
+            FUND_AMOUNT_INPUT.value = '';
+        });
+
+        WITHDRAW_BUTTON.addEventListener('click', () => {
+            const amount = parseInt(FUND_AMOUNT_INPUT.value, 10);
+            if (isNaN(amount) || amount <= 0) return logToOI("Importo ritiro non valido.", 'error');
+            updateWallet(-amount);
+            FUND_AMOUNT_INPUT.value = '';
+        });
+
+
+        // --- 2. Logica Funding (Dati Pubblici) ---
+        function loadInvestors() {
+            if (!db || !isAuthReady) return;
+            const collectionPath = `/artifacts/${appId}/public/data/investors`;
+            const investorsColRef = collection(db, collectionPath);
+            const investorsQuery = query(investorsColRef);
+
+            onSnapshot(investorsQuery, (snapshot) => {
+                INVESTORS_LIST.innerHTML = '';
+                let totalFunding = 0;
+                
+                if (snapshot.empty) {
+                    INVESTORS_LIST.innerHTML = '<p class="text-gray-500 text-sm p-1">Nessun contributo ancora registrato.</p>';
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const name = data.name || 'Anonimo';
+                    const amount = data.amount || 0;
+                    totalFunding += amount;
+
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-2 rounded-md bg-[#3b3b4d] text-sm';
+                    item.innerHTML = `
+                        <span class="text-yellow-400">${name}</span>
+                        <span class="font-mono text-white">${amount.toLocaleString('it-IT')} MU</span>
+                    `;
+                    INVESTORS_LIST.appendChild(item);
+                });
+                
+                // Aggiorna metrica Capitale nel Vivendi Monitor e il 3D
+                metrics.capitale = totalFunding;
+                document.getElementById('metric-capitale').textContent = `${totalFunding.toLocaleString('it-IT')} MU`;
+                updateThreeDScene();
+
+            }, (error) => {
+                logToOI(`Errore caricamento Funding: ${error.message}`, 'error');
+            });
+        }
+        
+        ADD_INVESTOR_BUTTON.addEventListener('click', () => {
+            if (!db || !isAuthReady) {
+                logToOI("Non autenticato o database non pronto.", 'error');
+                return;
+            }
+            const name = INVESTOR_NAME_INPUT.value.trim() || 'Seedbringer';
+            const amount = parseInt(INVESTOR_AMOUNT_INPUT.value, 10);
+            
+            if (isNaN(amount) || amount <= 0) {
+                logToOI("Ammontare investimento non valido.", 'error');
+                return;
+            }
+            
+            if (amount > currentUserWalletBalance) {
+                logToOI(`Saldo Wallet insufficiente! Necessari ${amount.toLocaleString('it-IT')} MU.`, 'error');
+                return;
+            }
+
+            // 1. Sottrai dal Wallet (Aggiornamento Privato)
+            const newBalance = currentUserWalletBalance - amount;
+            const settingsRef = getKarmabondsRef();
+            
+            // 2. Aggiungi al Registro Pubblico (Aggiunta Pubblica)
+            const collectionPath = `/artifacts/${appId}/public/data/investors`;
+            
+            Promise.all([
+                // 1. Aggiorna saldo Wallet
+                updateDoc(settingsRef, { walletBalance: newBalance, lastUpdate: serverTimestamp() }),
+                // 2. Aggiunge transazione pubblica
+                addDoc(collection(db, collectionPath), {
+                    name: name,
+                    amount: amount,
+                    userId: currentUserId, // Registra chi ha investito
+                    timestamp: serverTimestamp()
+                })
+            ])
+            .then(() => {
+                logToOI(`Investimento di ${amount.toLocaleString('it-IT')} MU completato.`, 'ai');
+                INVESTOR_NAME_INPUT.value = '';
+                INVESTOR_AMOUNT_INPUT.value = '';
+            })
+            .catch(e => {
+                logToOI(`Transazione FALLITA: ${e.message}`, 'error');
+            });
+        });
+
+
+        // === THREE.JS 3D SCENE ===
+
+        function initThreeD() {
+            const container = document.getElementById('three-d-container');
+            
+            // 1. Scene setup
+            scene = new THREE.Scene();
+            
+            // 2. Camera setup
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 10, 15);
+            camera.lookAt(0, 0, 0);
+
+            // 3. Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            renderer.setClearColor(0x14141D, 1); // Sfondo abbinato al CSS
+
+            // 4. Lights
+            const light1 = new THREE.PointLight(0xffffff, 1, 100);
+            light1.position.set(10, 15, 10);
+            scene.add(light1);
+
+            const light2 = new THREE.AmbientLight(0x404040, 5); // soft white light
+            scene.add(light2);
+
+            // 5. Ground Grid (Cyber look)
+            const gridHelper = new THREE.GridHelper(40, 40, 0x00ffff, 0x00ffff);
+            gridHelper.position.y = 0;
+            gridHelper.material.opacity = 0.5;
+            gridHelper.material.transparent = true;
+            scene.add(gridHelper);
+
+            // 6. Bars (Cylinders) representing metrics
+            const barGeometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
+            // Colori: Ciano (Coerenza), Arancio (Karmabonds), Giallo (Capitale)
+            const materialCoerenza = new THREE.MeshPhongMaterial({ color: 0x00ffff, emissive: 0x008888, shininess: 100 });
+            const materialKarmabonds = new THREE.MeshPhongMaterial({ color: 0xffaa33, emissive: 0x885511, shininess: 100 });
+            const materialCapitale = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0x888800, shininess: 100 });
+            
+            coerenzaBar = new THREE.Mesh(barGeometry, materialCoerenza);
+            sentimentoBar = new THREE.Mesh(barGeometry, materialKarmabonds);
+            capitaleBar = new THREE.Mesh(barGeometry, materialCapitale);
+            
+            coerenzaBar.position.set(-5, 0, 0);
+            sentimentoBar.position.set(0, 0, 0);
+            capitaleBar.position.set(5, 0, 0);
+
+            scene.add(coerenzaBar, sentimentoBar, capitaleBar);
+            
+            // 7. Event listeners for resizing and camera controls
+            window.addEventListener('resize', onWindowResize, false);
+            setupCameraControls(container);
+            
+            // Initial update
+            updateThreeDScene();
+            animate();
+        }
+
+        // Ridimensionamento
+        function onWindowResize() {
+            const container = document.getElementById('three-d-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Funzione per aggiornare l'altezza delle barre
+        function updateThreeDScene() {
+            // Altezza Coerenza (Statica)
+            const coerenzaHeight = 18; 
+            coerenzaBar.scale.y = coerenzaHeight; 
+            coerenzaBar.position.y = coerenzaHeight / 2;
+            
+            // Altezza Karmabonds (Basata su Trust Index: 90-100 -> Altezza 5-20)
+            const mapTrustToHeight = (value) => (value - 90) * (15 / 10) + 5;
+            const karmabondsHeight = mapTrustToHeight(currentUserKarmabonds);
+            sentimentoBar.scale.y = karmabondsHeight;
+            sentimentoBar.position.y = karmabondsHeight / 2;
+            
+            // Altezza Capitale (Basata su Fondi Totali: Mappatura logaritmica)
+            const maxFundingHeight = 20;
+            const logValue = Math.log10(metrics.capitale > 1 ? metrics.capitale : 1); // log(1) = 0
+            const maxLog = 8; // Assumendo un max di 100 milioni di MU (log10(100,000,000) = 8)
+            
+            // Mappa LogValue a altezza (min 2, max 20)
+            let capitaleHeight = (logValue / maxLog) * maxFundingHeight;
+            capitaleHeight = Math.max(2, Math.min(maxFundingHeight, capitaleHeight)); // Mantiene tra 2 e 20
+
+            capitaleBar.scale.y = capitaleHeight; 
+            capitaleBar.position.y = capitaleHeight / 2;
+
+            // Aggiorna l'altezza di tutte le barre
+            if (renderer) renderer.render(scene, camera);
+        }
+
+        // Animazione Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            // Rotazione leggera della scena per effetto dinamico
+            if (scene) scene.rotation.y += 0.001; 
+            if (renderer && camera) renderer.render(scene, camera);
+        }
+
+        // Controlli della Telecamera
+        function setupCameraControls(element) {
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            const rotationSpeed = 0.005;
+
+            element.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            element.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                // Rotazione attorno all'asse Y
+                scene.rotation.y += deltaX * rotationSpeed;
+                
+                // Rotazione attorno all'asse X (limitata)
+                const newRotationX = scene.rotation.x + deltaY * rotationSpeed;
+                scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, newRotationX));
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                renderer.render(scene, camera);
+            });
+            
+            // Aggiungi supporto touch per mobile
+            element.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            element.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    const clientX = e.touches[0].clientX;
+                    const clientY = e.touches[0].clientY;
+
+                    const deltaX = clientX - previousMousePosition.x;
+                    const deltaY = clientY - previousMousePosition.y;
+
+                    scene.rotation.y += deltaX * rotationSpeed * 2;
+                    const newRotationX = scene.rotation.x + deltaY * rotationSpeed * 2;
+                    scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, newRotationX));
+
+                    previousMousePosition = { x: clientX, y: clientY };
+                    renderer.render(scene, camera);
+                }
+            });
+        }
+        
+        // === AVVIO ===
+        window.onload = () => {
+            initThreeD();
+            initializeFirebase();
+
+            // Gestione apertura/chiusura OI
+            OI_BUTTON.addEventListener('click', () => {
+                const isHidden = OI_PANEL.classList.toggle('translate-x-full');
+                OI_BUTTON.textContent = isHidden ? 'OI' : 'CHIUDI';
+            });
+            
+            // Gestione Tab
+            TABS.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.getAttribute('data-tab'));
+                });
+            });
+
+            // Avvio tab predefinito
+            switchTab('vivendi');
+        };
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
