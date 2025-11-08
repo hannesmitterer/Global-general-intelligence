@@ -13,6 +13,7 @@ import { SentimentoWSHub } from './ws/sentimento';
 import { SentimentoLiveEvent } from './types/sentimento';
 import { seed003KPI } from './kpi/seed003';
 import { getWalletConfig, isWalletFullyConfigured, getPendingConfigItems } from './config/wallet';
+import { SoftsenseOrchestrator } from './softsense';
 
 // Validate configuration at startup
 try {
@@ -29,6 +30,16 @@ const app = express();
 const sentimentoHub = new SentimentoWSHub({
   broadcastHz: config.sentimentoBroadcastHz,
   bufferMaxKb: config.sentimentoBufferMaxKb
+});
+
+// Initialize Softsense Orchestrator
+const softsense = new SoftsenseOrchestrator({
+  enableVetoOversight: true
+});
+
+// Configure Seedbringer emails as trusted nodes
+config.seedbringerEmails.forEach(email => {
+  softsense.getVetoOversight().addTrustedNode(email);
 });
 
 // Rate limiting configuration
@@ -178,6 +189,93 @@ app.get('/wallet/config', limiter, verifyGoogleToken, requireCouncilOrSeedbringe
       role: req.user?.role
     }
   });
+});
+
+/**
+ * POST /softsense/process - Process input through Softsense algorithms
+ * Accessible by: Council or Seedbringer
+ */
+app.post('/softsense/process', strictLimiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { input } = req.body;
+    
+    if (!input) {
+      res.status(400).json({ error: 'Input is required' });
+      return;
+    }
+
+    // Process through Softsense with user context
+    const result = softsense.process(input, req.user?.email);
+
+    res.json({
+      result,
+      user: req.user?.email,
+      role: req.user?.role
+    });
+  } catch (error) {
+    console.error('Error processing Softsense:', error);
+    res.status(500).json({ error: 'Failed to process Softsense' });
+  }
+});
+
+/**
+ * GET /softsense/metrics - Get current Softsense harmonics metrics
+ * Accessible by: Council or Seedbringer
+ */
+app.get('/softsense/metrics', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const metrics = {
+    core: softsense.getCore().getMetrics(),
+    yinYang: softsense.getYinYang().getState(),
+    loveFirst: softsense.getLoveFirst().getPriorities()
+  };
+
+  res.json({
+    metrics,
+    user: req.user?.email,
+    role: req.user?.role
+  });
+});
+
+/**
+ * GET /softsense/veto/stats - Get veto oversight statistics
+ * Accessible by: Seedbringer only
+ */
+app.get('/softsense/veto/stats', limiter, verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const stats = softsense.getVetoOversight().getVetoStats();
+  const history = softsense.getVetoOversight().getVetoHistory(10); // Last 10 actions
+
+  res.json({
+    stats,
+    recentHistory: history,
+    user: req.user?.email,
+    role: req.user?.role
+  });
+});
+
+/**
+ * POST /softsense/veto/validate - Validate action through veto oversight
+ * Accessible by: Seedbringer only
+ */
+app.post('/softsense/veto/validate', strictLimiter, verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { action } = req.body;
+    
+    if (!action) {
+      res.status(400).json({ error: 'Action is required' });
+      return;
+    }
+
+    const result = softsense.getVetoOversight().processAction(action, req.user?.email || 'unknown');
+
+    res.json({
+      result,
+      user: req.user?.email,
+      role: req.user?.role
+    });
+  } catch (error) {
+    console.error('Error validating veto action:', error);
+    res.status(500).json({ error: 'Failed to validate action' });
+  }
 });
 
 

@@ -29,17 +29,25 @@ class TestEuystacioAI(unittest.TestCase):
         self.assertEqual(response['input'], "Hello!")
         self.assertEqual(response['ai_name'], "TestAI")
         self.assertEqual(len(self.ai.interaction_history), 1)
+        # Check Softsense fields are present
+        self.assertIn('softsense', response)
+        self.assertIn('love_first', response)
+        self.assertIn('yin_yang', response)
     
     def test_process_input_help(self):
         """Test processing help input"""
         response = self.ai.process_input("I need help")
         self.assertIn("process information", response['response'])
+        # Verify Softsense processing
+        self.assertIn('harmonics', response['softsense'])
     
     def test_process_input_identity(self):
         """Test identity question"""
         response = self.ai.process_input("Who are you?")
         self.assertIn("TestAI", response['response'])
         self.assertIn("AI Collective", response['response'])
+        # Verify Softsense integration
+        self.assertIsInstance(response['softsense']['balanced'], bool)
     
     def test_add_knowledge(self):
         """Test adding knowledge"""

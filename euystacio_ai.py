@@ -4,11 +4,15 @@ Part of the Euystacio/AI Collective
 
 This module provides the core functionality for the Euystacio AI system,
 designed to facilitate collaborative artificial intelligence processing.
+
+Enhanced with Softsense algorithms for harmonics sensing, Love First prioritization,
+and Yin-Yang balance synchronization.
 """
 
 import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+from softsense import SoftsenseCore, LoveFirstAlgorithm, YinYangBalance
 
 
 class EuystacioAI:
@@ -33,9 +37,15 @@ class EuystacioAI:
         self.interaction_history: List[Dict[str, Any]] = []
         self.created_at = datetime.now().isoformat()
         
+        # Initialize Softsense algorithms
+        self.softsense = SoftsenseCore()
+        self.love_first = LoveFirstAlgorithm()
+        self.yin_yang = YinYangBalance()
+        
     def process_input(self, input_data: str) -> Dict[str, Any]:
         """
         Process input data and generate a response.
+        Enhanced with Softsense harmonics sensing.
         
         Args:
             input_data: Input string to process
@@ -43,11 +53,31 @@ class EuystacioAI:
         Returns:
             Dictionary containing the response and metadata
         """
+        # Process through Softsense algorithms
+        softsense_result = self.softsense.sense(input_data)
+        love_first_result = self.love_first.evaluate(input_data)
+        yin_yang_result = self.yin_yang.synchronize(input_data)
+        
         response = {
             "input": input_data,
             "timestamp": datetime.now().isoformat(),
             "ai_name": self.name,
-            "response": self._generate_response(input_data)
+            "response": self._generate_response(input_data),
+            "softsense": {
+                "harmonics": softsense_result['harmonics'],
+                "balanced": softsense_result['balanced'],
+                "warnings": softsense_result['warnings']
+            },
+            "love_first": {
+                "prioritized": love_first_result['prioritized'],
+                "score": love_first_result['score'],
+                "triggers": love_first_result['triggers']
+            },
+            "yin_yang": {
+                "resolved": yin_yang_result['resolved'],
+                "balance": yin_yang_result['balancedState']['balance'],
+                "method": yin_yang_result['method']
+            }
         }
         
         self.interaction_history.append(response)
