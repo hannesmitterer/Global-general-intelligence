@@ -4,11 +4,14 @@ Part of the Euystacio/AI Collective
 
 This module provides the core functionality for the Euystacio AI system,
 designed to facilitate collaborative artificial intelligence processing.
+
+Integrated with Softsense Framework for perpetual alignment.
 """
 
 import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+from softsense import get_softsense, initialize_softsense
 
 
 class EuystacioAI:
@@ -33,6 +36,10 @@ class EuystacioAI:
         self.interaction_history: List[Dict[str, Any]] = []
         self.created_at = datetime.now().isoformat()
         
+        # Initialize Softsense framework for perpetual alignment
+        self.softsense = get_softsense()
+        self.softsense.register_harmonizing_layer(f"euystacio_{name}")
+        
     def process_input(self, input_data: str) -> Dict[str, Any]:
         """
         Process input data and generate a response.
@@ -43,6 +50,19 @@ class EuystacioAI:
         Returns:
             Dictionary containing the response and metadata
         """
+        # Softsense: Check Love First prioritization
+        if not self.softsense.trigger_love_first(f"process_input: {input_data}"):
+            return {
+                "input": input_data,
+                "timestamp": datetime.now().isoformat(),
+                "ai_name": self.name,
+                "response": "Operation blocked by Love First safeguard",
+                "softsense_blocked": True
+            }
+        
+        # Softsense: Sense algorithm loop
+        self.softsense.sense_algorithm_loop(f"euystacio_{self.name}", "process_input", True)
+        
         response = {
             "input": input_data,
             "timestamp": datetime.now().isoformat(),
@@ -83,6 +103,9 @@ class EuystacioAI:
             key: Knowledge identifier
             value: Knowledge content
         """
+        # Softsense: Sense knowledge addition
+        self.softsense.sense_algorithm_loop(f"euystacio_{self.name}", "add_knowledge", True)
+        
         self.knowledge_base[key] = {
             "value": value,
             "added_at": datetime.now().isoformat()
@@ -114,7 +137,8 @@ class EuystacioAI:
             "created_at": self.created_at,
             "knowledge_items": len(self.knowledge_base),
             "total_interactions": len(self.interaction_history),
-            "status": "active"
+            "status": "active",
+            "softsense_harmonization": self.softsense.get_harmonization_status()
         }
     
     def export_state(self) -> str:
