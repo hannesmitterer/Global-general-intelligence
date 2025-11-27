@@ -48,6 +48,7 @@ def get_reflections():
                 with open(os.path.join("logs", fname)) as f:
                     reflections.append(json.load(f))
     except FileNotFoundError:
+        # logs directory may be empty
         pass
     return reflections
 
