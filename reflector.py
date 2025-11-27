@@ -52,6 +52,7 @@ def reflect_and_suggest():
         with open(reflection_log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"reflection": event, "suggestion": suggestion}, ensure_ascii=False) + "\n")
     except Exception:
+        # best-effort only: ignore errors writing reflection log
         pass
 
     # Return reflection summary for API
