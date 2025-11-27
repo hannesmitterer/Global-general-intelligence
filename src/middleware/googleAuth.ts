@@ -60,7 +60,7 @@ export async function verifyGoogleToken(
 
     next();
   } catch (error) {
-    console.error('Token verification error:', error);
+    console.error('Token verification error:', error instanceof Error ? error.message : String(error));
     res.status(401).json({ error: 'Invalid token' });
   }
 }
