@@ -13,6 +13,7 @@ import { SentimentoWSHub } from './ws/sentimento';
 import { SentimentoLiveEvent } from './types/sentimento';
 import { seed003KPI } from './kpi/seed003';
 import { getWalletConfig, isWalletFullyConfigured, getPendingConfigItems } from './config/wallet';
+import { getSoftsense, initializeSoftsense } from './softsense';
 
 // Validate configuration at startup
 try {
@@ -22,6 +23,10 @@ try {
   console.error('Configuration error:', error);
   process.exit(1);
 }
+
+// Initialize Softsense Framework
+const softsense = initializeSoftsense();
+console.log('Softsense Framework initialized');
 
 const app = express();
 
@@ -70,6 +75,9 @@ app.get('/health', (req: Request, res: Response) => {
  * Accessible by: Council or Seedbringer
  */
 app.get('/sfi', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  // Softsense: Sense API endpoint access
+  softsense.senseAlgorithmLoop('api_endpoints', 'GET /sfi', true);
+  
   res.json({
     data: 'SFI data',
     message: 'SFI data retrieved successfully',
@@ -97,6 +105,33 @@ app.get('/mcl/live', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (r
  */
 app.post('/allocations', strictLimiter, verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
   const allocationData = req.body;
+  
+  // Softsense: Check if Seedbringer veto is required
+  if (softsense.seedbringerVeto.checkVetoRequired('allocation_create')) {
+    // Enforce Seedbringer veto power
+    softsense.enforceSeedbringerVeto(
+      'allocation_create',
+      req.user?.email || 'unknown',
+      'Critical allocation operation'
+    );
+  }
+  
+  // Softsense: Trigger Love First evaluation
+  const approved = softsense.triggerLoveFirst('create_allocation', {
+    seedbringer: true,
+    authorized: true,
+    user: req.user?.email
+  });
+  
+  if (!approved) {
+    res.status(403).json({
+      error: 'Operation blocked by Softsense Love First safeguard'
+    });
+    return;
+  }
+  
+  // Softsense: Sense algorithm loop
+  softsense.senseAlgorithmLoop('api_endpoints', 'POST /allocations', true);
   
   res.json({
     message: 'Allocation created successfully',
@@ -177,6 +212,36 @@ app.get('/wallet/config', limiter, verifyGoogleToken, requireCouncilOrSeedbringe
       user: req.user?.email,
       role: req.user?.role
     }
+  });
+});
+
+/**
+ * GET /softsense/status - Retrieve Softsense Framework status
+ * Accessible by: Council or Seedbringer
+ */
+app.get('/softsense/status', limiter, verifyGoogleToken, requireCouncilOrSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const status = softsense.getHarmonizationStatus();
+  
+  res.json({
+    ...status,
+    user: req.user?.email,
+    role: req.user?.role
+  });
+});
+
+/**
+ * GET /softsense/audit - Retrieve Softsense audit log
+ * Accessible by: Seedbringer only
+ */
+app.get('/softsense/audit', limiter, verifyGoogleToken, requireSeedbringer, (req: AuthenticatedRequest, res: Response) => {
+  const limit = parseInt(req.query.limit as string) || 100;
+  const auditLog = softsense.auditLog.getRecent(limit);
+  
+  res.json({
+    entries: auditLog,
+    total: auditLog.length,
+    user: req.user?.email,
+    role: req.user?.role
   });
 });
 
