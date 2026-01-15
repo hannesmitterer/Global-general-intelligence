@@ -5,7 +5,9 @@ export function pushSample(sorrow: number, hope: number) {
   const ts = Date.now();
   buf.push({ ts, sorrow, hope });
   const cutoff = ts - maxAgeMs();
-  while (buf.length && buf[0].ts < cutoff) buf.shift();
+  while (buf.length && buf[0].ts < cutoff) {
+    buf.shift();
+  }
 }
 export function getRollingKpi() {
   const now = Date.now();
