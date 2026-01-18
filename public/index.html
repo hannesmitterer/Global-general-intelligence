@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed-003 Dashboard — Hope Transduction Layer</title>
+    <meta name="description" content="Integrated dashboard for monitoring Hope/Sorrow KPI metrics and system administration">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a1628;
+            --bg-secondary: #132338;
+            --bg-card: #1a2f45;
+            --border-color: rgba(99, 179, 237, 0.2);
+            --text-primary: #e8f1fa;
+            --text-secondary: #8fa6c6;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --hope-gradient: linear-gradient(135deg, #06b6d4, #3b82f6);
+            --sorrow-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(26, 47, 69, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--hope-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .user-email {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .user-role {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(26, 47, 69, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .metric-large {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--hope-gradient);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-blue);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--hope-gradient);
+            border: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .status-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(99, 179, 237, 0.2);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: var(--hope-gradient);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        .sentiment-input {
+            margin: 15px 0;
+        }
+
+        .sentiment-input label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .sentiment-input input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(99, 179, 237, 0.2);
+            outline: none;
+        }
+
+        .sentiment-input input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .sentiment-value {
+            display: inline-block;
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .metric-large {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>🌟 Seed-003 Dashboard</h1>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-top: 5px;">Hope Transduction Layer (ARSP-001)</p>
+            </div>
+            <div class="auth-section">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-email" id="userEmail">—</div>
+                    <div class="user-role" id="userRole">Role: —</div>
+                </div>
+                <div id="googleSignIn"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Key Metrics Row -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Hope/Sorrow Ratio</span>
+                    <span class="status-badge status-info" id="ratioStatus">MONITORING</span>
+                </div>
+                <div class="metric-large" id="ratioValue">—</div>
+                <div class="metric-label">Current Net Ratio</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="ratioProgress" style="width: 0%">0%</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Average Hope</span>
+                    <span class="status-badge status-success" id="hopeStatus">—</span>
+                </div>
+                <div class="metric-large" style="color: var(--accent-cyan);" id="hopeValue">—</div>
+                <div class="metric-label">Rolling Window</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Average Sorrow</span>
+                    <span class="status-badge status-warning" id="sorrowStatus">—</span>
+                </div>
+                <div class="metric-large" style="color: #8b5cf6;" id="sorrowValue">—</div>
+                <div class="metric-label">Rolling Window</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Sample Count</span>
+                </div>
+                <div class="metric-large" style="color: var(--accent-green);" id="samplesValue">—</div>
+                <div class="metric-label">Active Samples</div>
+                <div class="stat-row">
+                    <span class="stat-label">Window Size</span>
+                    <span class="stat-value" id="windowSize">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Controls Row -->
+        <div class="grid">
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-header">
+                    <span class="card-title">📊 Hope/Sorrow Trends</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hopeAmplifier">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="margin-left: 10px; font-size: 14px;">Hope Amplifier</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Submit Sentiment Data</span>
+                </div>
+                <div class="sentiment-input">
+                    <label>
+                        Sorrow Level: <span class="sentiment-value" id="sorrowInputValue">0.50</span>
+                    </label>
+                    <input type="range" id="sorrowInput" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                <div class="sentiment-input">
+                    <label>
+                        Hope Level: <span class="sentiment-value" id="hopeInputValue">0.50</span>
+                    </label>
+                    <input type="range" id="hopeInput" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                <button class="btn btn-primary" id="submitSentiment" style="width: 100%; margin-top: 10px;">
+                    Submit Sample
+                </button>
+                <div id="submitStatus" style="margin-top: 10px; font-size: 13px; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+
+        <!-- Admin and System Row -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🎯 Seedbringer Controls</span>
+                    <span class="status-badge" id="seedbringerBadge">LOCKED</span>
+                </div>
+                <div style="margin: 15px 0;">
+                    <button class="btn" id="executeAllocation" disabled style="width: 100%;">
+                        Execute Allocation
+                    </button>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="seedbringerStatus">Sign in required</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 Council Audit</span>
+                    <span class="status-badge" id="councilBadge">LOCKED</span>
+                </div>
+                <div style="margin: 15px 0;">
+                    <button class="btn" id="fetchSFI" disabled style="width: 100%; margin-bottom: 10px;">
+                        Fetch SFI
+                    </button>
+                    <button class="btn" id="fetchMCL" disabled style="width: 100%;">
+                        Fetch MCL
+                    </button>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="councilStatus">Sign in required</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⚡ System Health</span>
+                    <span class="status-badge status-success" id="systemStatus">ONLINE</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Backend</span>
+                    <span class="stat-value" id="backendStatus">Checking...</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Last Update</span>
+                    <span class="stat-value" id="lastUpdate">—</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Auto Refresh</span>
+                    <span class="stat-value">4s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📝 Activity Log</span>
+                <button class="btn" id="clearLog" style="padding: 5px 15px; font-size: 12px;">Clear</button>
+            </div>
+            <div class="activity-log" id="activityLog">
+                <div class="log-entry">
+                    <div>Dashboard initialized</div>
+                    <div class="log-timestamp" id="initTime">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_CLIENT_ID = '<YOUR_GOOGLE_CLIENT_ID>';
+        const API_BASE = location.origin.replace(/\/$/, '');
+        const HOPE_THRESHOLD = 0.58;
+
+        let idToken = null;
+        let principal = null;
+        let role = null;
+        let chart = null;
+        let chartData = {
+            labels: [],
+            hope: [],
+            sorrow: [],
+            ratio: []
+        };
+
+        // Initialize
+        document.getElementById('initTime').textContent = new Date().toLocaleString();
+
+        // Update sentiment input displays
+        document.getElementById('sorrowInput').addEventListener('input', (e) => {
+            document.getElementById('sorrowInputValue').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        document.getElementById('hopeInput').addEventListener('input', (e) => {
+            document.getElementById('hopeInputValue').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        // Submit sentiment
+        document.getElementById('submitSentiment').addEventListener('click', async () => {
+            const sorrow = parseFloat(document.getElementById('sorrowInput').value);
+            const hope = parseFloat(document.getElementById('hopeInput').value);
+            
+            try {
+                const response = await fetch(`${API_BASE}/ingest/sentimento`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sorrow, hope })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('submitStatus').innerHTML = '✓ Sample submitted successfully';
+                    document.getElementById('submitStatus').style.color = 'var(--accent-green)';
+                    addLog(`Submitted sample: Hope=${hope.toFixed(2)}, Sorrow=${sorrow.toFixed(2)}`);
+                    
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        document.getElementById('submitStatus').innerHTML = '';
+                    }, 2000);
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch (error) {
+                document.getElementById('submitStatus').innerHTML = '✗ Failed to submit';
+                document.getElementById('submitStatus').style.color = 'var(--accent-red)';
+                addLog('Error: Failed to submit sentiment sample', true);
+            }
+        });
+
+        // Google Sign-In
+        function onCredentialResponse(response) {
+            idToken = response.credential;
+            try {
+                const payload = JSON.parse(atob(idToken.split('.')[1]));
+                principal = payload.email || 'unknown';
+            } catch (e) {
+                principal = 'unknown';
+            }
+
+            document.getElementById('userEmail').textContent = principal;
+            document.getElementById('userInfo').style.display = 'block';
+            addLog(`User signed in: ${principal}`);
+
+            // Verify with backend
+            verifyAuth();
+        }
+
+        async function verifyAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/sfi`, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+                
+                const data = await response.json();
+                role = data.role || (data.error ? 'unauthorized' : 'unknown');
+                
+                document.getElementById('userRole').textContent = `Role: ${role}`;
+                document.getElementById('backendStatus').textContent = 'Connected';
+                
+                if (role === 'seedbringer' || role === 'council') {
+                    // Council access
+                    document.getElementById('councilBadge').textContent = 'UNLOCKED';
+                    document.getElementById('councilBadge').className = 'status-badge status-success';
+                    document.getElementById('councilStatus').textContent = 'Authenticated';
+                    document.getElementById('fetchSFI').disabled = false;
+                    document.getElementById('fetchMCL').disabled = false;
+                    addLog(`Council access granted to ${principal}`);
+                }
+                
+                if (role === 'seedbringer') {
+                    // Seedbringer access
+                    document.getElementById('seedbringerBadge').textContent = 'UNLOCKED';
+                    document.getElementById('seedbringerBadge').className = 'status-badge status-success';
+                    document.getElementById('seedbringerStatus').textContent = 'Seedbringer Authenticated';
+                    document.getElementById('executeAllocation').disabled = false;
+                    addLog(`Seedbringer access granted to ${principal}`);
+                }
+            } catch (error) {
+                document.getElementById('backendStatus').textContent = 'Error';
+                addLog('Error: Authentication verification failed', true);
+            }
+        }
+
+        window.onload = function() {
+            try {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: onCredentialResponse,
+                    auto_select: false
+                });
+                window.google.accounts.id.renderButton(
+                    document.getElementById('googleSignIn'),
+                    { theme: 'filled_blue', size: 'large', text: 'signin_with' }
+                );
+            } catch (e) {
+                console.error('Google Sign-In initialization failed:', e);
+            }
+
+            initChart();
+            startKPIPolling();
+        };
+
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Hope',
+                            data: chartData.hope,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Sorrow',
+                            data: chartData.sorrow,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Ratio',
+                            data: chartData.ratio,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e8f1fa' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#8fa6c6' },
+                            grid: { color: 'rgba(99, 179, 237, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#8fa6c6' },
+                            grid: { color: 'rgba(99, 179, 237, 0.1)' },
+                            beginAtZero: true,
+                            max: 1
+                        },
+                        y1: {
+                            position: 'right',
+                            ticks: { color: '#8fa6c6' },
+                            grid: { display: false },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update metrics
+        function updateMetrics(kpi) {
+            const { avgSorrow, avgHope, ratio, samples, windowSec } = kpi;
+            
+            // Update main metrics
+            document.getElementById('ratioValue').textContent = ratio.toFixed(2);
+            document.getElementById('hopeValue').textContent = avgHope.toFixed(3);
+            document.getElementById('sorrowValue').textContent = avgSorrow.toFixed(3);
+            document.getElementById('samplesValue').textContent = samples;
+            document.getElementById('windowSize').textContent = `${windowSec}s`;
+            
+            // Update progress bar
+            const percentage = Math.min(100, ratio * 100);
+            document.getElementById('ratioProgress').style.width = `${percentage}%`;
+            document.getElementById('ratioProgress').textContent = `${percentage.toFixed(0)}%`;
+            
+            // Update status badges
+            if (ratio >= 1.25) {
+                document.getElementById('ratioStatus').textContent = 'EXCELLENT';
+                document.getElementById('ratioStatus').className = 'status-badge status-success';
+            } else if (ratio >= 0.9) {
+                document.getElementById('ratioStatus').textContent = 'GOOD';
+                document.getElementById('ratioStatus').className = 'status-badge status-success';
+            } else if (ratio >= 0.58) {
+                document.getElementById('ratioStatus').textContent = 'MODERATE';
+                document.getElementById('ratioStatus').className = 'status-badge status-warning';
+            } else {
+                document.getElementById('ratioStatus').textContent = 'LOW';
+                document.getElementById('ratioStatus').className = 'status-badge status-warning';
+            }
+            
+            // Hope status
+            if (avgHope >= 0.7) {
+                document.getElementById('hopeStatus').textContent = 'HIGH';
+            } else if (avgHope >= 0.4) {
+                document.getElementById('hopeStatus').textContent = 'MODERATE';
+            } else {
+                document.getElementById('hopeStatus').textContent = 'LOW';
+            }
+            
+            // Sorrow status
+            if (avgSorrow >= 0.7) {
+                document.getElementById('sorrowStatus').textContent = 'HIGH';
+            } else if (avgSorrow >= 0.4) {
+                document.getElementById('sorrowStatus').textContent = 'MODERATE';
+            } else {
+                document.getElementById('sorrowStatus').textContent = 'LOW';
+            }
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Update chart
+            updateChart(avgHope, avgSorrow, ratio);
+        }
+
+        // Update chart
+        function updateChart(hope, sorrow, ratio) {
+            const now = new Date().toLocaleTimeString();
+            
+            chartData.labels.push(now);
+            chartData.hope.push(hope);
+            chartData.sorrow.push(sorrow);
+            chartData.ratio.push(ratio);
+            
+            // Keep only last 20 data points
+            if (chartData.labels.length > 20) {
+                chartData.labels.shift();
+                chartData.hope.shift();
+                chartData.sorrow.shift();
+                chartData.ratio.shift();
+            }
+            
+            chart.update();
+        }
+
+        // Start KPI polling
+        function startKPIPolling() {
+            setInterval(async () => {
+                try {
+                    const headers = idToken ? { Authorization: `Bearer ${idToken}` } : {};
+                    const response = await fetch(`${API_BASE}/kpi/hope-ratio`, { headers });
+                    
+                    if (response.ok) {
+                        const { kpi } = await response.json();
+                        if (kpi) {
+                            updateMetrics(kpi);
+                        }
+                    }
+                } catch (error) {
+                    console.error('KPI polling error:', error);
+                }
+            }, 4000);
+        }
+
+        // Activity log
+        function addLog(message, isError = false) {
+            const logContainer = document.getElementById('activityLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            if (isError) {
+                entry.style.borderLeftColor = 'var(--accent-red)';
+            }
+            entry.innerHTML = `
+                <div>${message}</div>
+                <div class="log-timestamp">${new Date().toLocaleString()}</div>
+            `;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+            
+            // Keep only last 50 entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // Clear log
+        document.getElementById('clearLog').addEventListener('click', () => {
+            document.getElementById('activityLog').innerHTML = `
+                <div class="log-entry">
+                    <div>Log cleared</div>
+                    <div class="log-timestamp">${new Date().toLocaleString()}</div>
+                </div>
+            `;
+        });
+
+        // Admin actions
+        document.getElementById('executeAllocation').addEventListener('click', async () => {
+            if (!idToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/allocations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ op: 'Dashboard allocation request' })
+                });
+                
+                const data = await response.json();
+                addLog(`Allocation executed by ${data.actor || 'unknown'}`);
+                alert(`Allocation accepted. Actor: ${data.actor || 'n/a'}`);
+            } catch (error) {
+                addLog('Error: Allocation failed', true);
+                alert('Seedbringer access required');
+            }
+        });
+
+        document.getElementById('fetchSFI').addEventListener('click', async () => {
+            if (!idToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/sfi`, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+                
+                const data = await response.json();
+                addLog(`SFI fetched for ${data.principal || 'unknown'}`);
+                alert(`SFI fetched for principal: ${data.principal || 'n/a'}`);
+            } catch (error) {
+                addLog('Error: SFI fetch failed', true);
+                alert('Access denied');
+            }
+        });
+
+        document.getElementById('fetchMCL').addEventListener('click', async () => {
+            if (!idToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/mcl/live`, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+                
+                const data = await response.json();
+                addLog(`MCL fetched for ${data.principal || 'unknown'}`);
+                alert(`MCL live data fetched for principal: ${data.principal || 'n/a'}`);
+            } catch (error) {
+                addLog('Error: MCL fetch failed', true);
+                alert('Access denied');
+            }
+        });
+
+        // Hope Amplifier theme
+        document.getElementById('hopeAmplifier').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.style.background = 'linear-gradient(135deg, #0c1f3a 0%, #1a2f45 100%)';
+                addLog('Hope Amplifier activated');
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)';
+                addLog('Hope Amplifier deactivated');
+            }
+        });
+    </script>
+</body>
+</html>
